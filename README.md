@@ -25,12 +25,10 @@ specific version of `{shinydashboardPlus}`, in addition to some non-CRAN
 packages.
 
 ``` r
-# Install the development version from GitHub:
 # install.packages("remotes")
 remotes::install_version("shinydashboardPlus", version = "0.7.0", repos = "http://cran.us.r-project.org")
 remotes::install_github("arestrom/remisc")
 remotes::install_github("arestrom/iformr")
-remotes::install_github("arestrom/ChehalisBasin")
 ```
 
 ## Storing database connection credentials
