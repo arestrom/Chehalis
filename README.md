@@ -1,5 +1,5 @@
 
-# ChehalisBasin
+# Chehalis
 
 ## Overview
 
@@ -45,11 +45,11 @@ section of:
 ## Start and stop the application
 
 Before launching the application you are strongly advised to make sure
-your default browser is set to something like Chrome or Firefox. The
+your default browser is set to something like `Chrome` or `Firefox`. The
 interface is unlikely to work correctly using a Microsoft browser. To
 make sure that the application starts in your browser rather than the
 default RStudio Viewer, open the `global.R` file in RStudio. You should
-then see a green triangle icon next to `Run App` in the upper right-hand
+see a green triangle icon next to `Run App` in the upper right-hand
 corner of you script pane. Click on the dialog icon to the right of `Run
 App` and select `Run External`. This only needs to be done once. Any
 time afterward that you want to start the application you just need to
@@ -62,8 +62,8 @@ bottom of the RStudio console you should see something like:
 `Listening on http://127.0.0.1:1234`
 
 To stop the application close the web-interface in your browser. Then
-make sure to click on the red icon in the upper right-hand corner of the
-RStudio console to stop the active session. You should see the normal R
-prompt `>` at the bottom of the console window return. Make sure and
-stop the session as soon as you close the web interface in your browser
-so as to release any unneeded resources.
+make sure to click on the red `Stop` icon in the upper right-hand corner
+of the RStudio console. This ends the active session. You should see the
+normal R prompt `>` at the bottom of the console window return. Make
+sure and stop the session as soon as you close the web interface in your
+browser so as to release any unneeded resources.
