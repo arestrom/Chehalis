@@ -241,9 +241,21 @@ pg_host <- function(host_label) {
   Sys.getenv(host_label)
 }
 
-# Get pooled connection to AWS prod instance in FISH DB
+# Get pooled connection to AWS prod instance in FISH DB...Mine
 pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
                     port = "5432", user = pg_user("pg_user"), password = pg_pw("pg_pwd_prod"))
+
+# # Get pooled connection to AWS prod instance in FISH DB...Lea
+# pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
+#                     port = "5432", user = pg_user("pg_user_prod_lea"), password = pg_pw("pg_pw_prod_lea"))
+
+# # Get pooled connection to AWS prod instance in FISH DB...Nick
+# pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
+#                     port = "5432", user = pg_user("pg_user_prod_nick"), password = pg_pw("pg_pw_prod_nick"))
+
+# # Get pooled connection to AWS prod instance in FISH DB...Nick
+# pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
+#                     port = "5432", user = pg_user("pg_user_prod_amy"), password = pg_pw("pg_pw_prod_amy"))
 
 # Define close function =============================================================
 
