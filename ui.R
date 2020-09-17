@@ -39,22 +39,20 @@ ui = dashboardPagePlus(
                   survey_ui,
                   width = 12,
                   accordion(
+                    inputId = "survey_accordion",
                     accordionItem(
-                      id = 1,
                       title = "Survey comments",
                       color = "purple",
                       collapsed = TRUE,
                       survey_comment_ui
                     ),
                     accordionItem(
-                      id = 2,
                       title = "Survey intent",
                       color = "purple",
                       collapsed = TRUE,
                       survey_intent_ui
                     ),
                     accordionItem(
-                      id = 3,
                       title = "Waterbody measurements",
                       color = "purple",
                       collapsed = TRUE,
@@ -79,29 +77,26 @@ ui = dashboardPagePlus(
                   collapsed = FALSE,
                   width = 12,
                   accordion(
+                    inputId = "fish_accordion",
                     accordionItem(
-                      id = 4,
                       title = "Fish location",
                       color = "purple",
                       collapsed = TRUE,
                       fish_location_ui
                     ),
                     accordionItem(
-                      id = 5,
                       title = "Fish counts",
                       color = "purple",
                       collapsed = FALSE,
                       fish_encounter_ui
                     ),
                     accordionItem(
-                      id = 6,
                       title = "Individual fish",
                       color = "purple",
                       collapsed = TRUE,
                       individual_fish_ui
                     ),
                     accordionItem(
-                      id = 7,
                       title = "Fish length measurement",
                       color = "purple",
                       collapsed = TRUE,
@@ -117,29 +112,26 @@ ui = dashboardPagePlus(
                   collapsed = FALSE,
                   width = 12,
                   accordion(
+                    inputId = "redd_accordion",
                     accordionItem(
-                      id = 8,
                       title = "Redd location",
                       color = "purple",
                       collapsed = TRUE,
                       redd_location_ui
                     ),
                     accordionItem(
-                      id = 9,
                       title = "Redd counts",
                       color = "purple",
                       collapsed = FALSE,
                       redd_encounter_ui
                     ),
                     accordionItem(
-                      id = 10,
                       title = "Individual redd",
                       color = "purple",
                       collapsed = TRUE,
                       individual_redd_ui
                     ),
                     accordionItem(
-                      id = 11,
                       title = "Redd substrate",
                       color = "purple",
                       collapsed = TRUE,

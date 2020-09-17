@@ -22,9 +22,7 @@
 #  1. Will need the following non-cran packages:
 #       remotes::install_github("arestrom/iformr")
 #       remotes::install_github("arestrom/remisc")
-#  2. The latest version of shinydashboardPlus (v0.7.5) broke the accordions
-#     So use: remotes::install_version("shinydashboardPlus", version = "0.7.0", repos = "http://cran.us.r-project.org")
-#  3. Will need a .Renviron file with entries for pg_host, pg_user, and pg_pw: Credentials for AWS prod server
+#  2. Will need a .Renviron file with entries for pg_host, pg_user, and pg_pw: Credentials for AWS prod server
 #     Should also install Rtools4 and add path:
 #     PATH="${RTOOLS40_HOME}\usr\bin;${PATH}" to .Renviron file
 #
