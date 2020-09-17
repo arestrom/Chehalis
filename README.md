@@ -20,13 +20,11 @@ of the SG data dictionary at: <https://arestrom.github.io/sgsdd/>
 
 ## Installation
 
-You will need to install R-4.0.2 or higher. You will also need a
-specific version of `{shinydashboardPlus}`, in addition to some non-CRAN
-packages.
+You will need to install R-4.0.2 or higher. You will also need some
+non-CRAN packages.
 
 ``` r
 # install.packages("remotes")
-remotes::install_version("shinydashboardPlus", version = "0.7.0", repos = "http://cran.us.r-project.org")
 remotes::install_github("arestrom/remisc")
 remotes::install_github("arestrom/iformr")
 ```
