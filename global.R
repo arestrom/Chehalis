@@ -19,17 +19,14 @@
 #             Ask Reg 5 if this is needed in database...where to store?
 #
 # Notes on install R 4.0.2
-#  1. Only needed to do remotes::install_github("arestrom/iformr")
-#     and               remotes::install_github("arestrom/remisc")
-#     otherwise all packages installed and updated correcly from
-#     RStudio prompt when opening project global.R. Everything
-#     appears to work correctly...including leaflet.extras.
-#     Should also install Rtools4 and add path:
-#     PATH="${RTOOLS40_HOME}\usr\bin;${PATH}"
-#  2. Will need a .Renviron file for iformr
-#  3. Will need a shared place for sqlite DB
-#  4. The latest version of shinydashboardPlus (v0.7.5) broke the accordions
+#  1. Will need the following non-cran packages:
+#       remotes::install_github("arestrom/iformr")
+#       remotes::install_github("arestrom/remisc")
+#  2. The latest version of shinydashboardPlus (v0.7.5) broke the accordions
 #     So use: remotes::install_version("shinydashboardPlus", version = "0.7.0", repos = "http://cran.us.r-project.org")
+#  3. Will need a .Renviron file with entries for pg_host, pg_user, and pg_pw: Credentials for AWS prod server
+#     Should also install Rtools4 and add path:
+#     PATH="${RTOOLS40_HOME}\usr\bin;${PATH}" to .Renviron file
 #
 # Notes:
 #  1. Very strange error using the pool and dbplyr query for
@@ -151,8 +148,6 @@
 # 46. Set labels for column headers
 # 47. Add selectable input for the number of months of previous redds or carcasses to display
 #     in the redd_location and fish_location tables.
-# 48. Last change before creating package was to set inst/golem-config.yml to app-prod: yes
-#     Then added launch.browser = TRUE to R/run_app()
 #
 # AS 2020-09-11
 #==============================================================
@@ -241,7 +236,7 @@ pg_host <- function(host_label) {
   Sys.getenv(host_label)
 }
 
-# Get pooled connection to AWS prod instance in FISH DB...Mine
+# Get pooled connection to AWS prod instance FISH DB...Mine
 pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
                     port = "5432", user = pg_user("pg_user"), password = pg_pw("pg_pwd_prod"))
 
@@ -253,7 +248,7 @@ pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_h
 # pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
 #                     port = "5432", user = pg_user("pg_user_prod_nick"), password = pg_pw("pg_pw_prod_nick"))
 
-# # Get pooled connection to AWS prod instance in FISH DB...Nick
+# # Get pooled connection to AWS prod instance in FISH DB...Amy
 # pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
 #                     port = "5432", user = pg_user("pg_user_prod_amy"), password = pg_pw("pg_pw_prod_amy"))
 
