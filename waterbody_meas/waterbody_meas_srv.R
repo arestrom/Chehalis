@@ -310,7 +310,7 @@ observeEvent(input$wbm_edit, {
   old_wbm_vals = selected_waterbody_meas_data() %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph)
-  #old_wbm_vals[] = lapply(old_wbm_vals, remisc::set_na_type)
+  #old_wbm_vals[] = lapply(old_wbm_vals, set_na_type)
   new_wbm_vals = waterbody_meas_edit() %>%
     mutate(clarity_meter = as.numeric(clarity_meter)) %>%
     mutate(water_ph = as.numeric(water_ph)) %>%
@@ -320,7 +320,7 @@ observeEvent(input$wbm_edit, {
     mutate(end_tmp_dt = format(end_tmp_dt, "%H:%M")) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph)
-  #new_wbm_vals[] = lapply(new_wbm_vals, remisc::set_na_type)
+  #new_wbm_vals[] = lapply(new_wbm_vals, set_na_type)
   showModal(
     tags$div(id = "waterbody_meas_update_modal",
              if ( !length(input$waterbody_measure_rows_selected) == 1 ) {

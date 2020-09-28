@@ -170,7 +170,7 @@ survey_create = reactive({
       filter(data_source == data_source_input) %>%
       pull(data_source_id)
   }
-  data_source_code = remisc::get_text_item(data_source_input, 1, ":")
+  data_source_code = get_text_item(data_source_input, 1, ":")
   # Data source unit
   data_source_unit_input = input$data_source_unit_select
   if (data_source_unit_input == "" ) {
@@ -413,7 +413,7 @@ survey_edit = reactive({
   data_source_id = data_source_vals %>%
     filter(data_source == data_source_input) %>%
     pull(data_source_id)
-  data_source_code = remisc::get_text_item(data_source_input, 1, ":")
+  data_source_code = get_text_item(data_source_input, 1, ":")
   # Data source unit
   data_source_unit_input = input$data_source_unit_select
   if (data_source_unit_input == "" ) {

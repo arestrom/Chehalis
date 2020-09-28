@@ -549,14 +549,14 @@ observeEvent(input$redd_loc_edit, {
     mutate(longitude = round(longitude, 6)) %>%
     select(redd_name, channel_type, orientation_type, latitude,
            longitude, horiz_accuracy, location_description)
-  old_redd_location_vals[] = lapply(old_redd_location_vals, remisc::set_na)
+  old_redd_location_vals[] = lapply(old_redd_location_vals, set_na)
   new_redd_location_vals = redd_location_edit() %>%
     mutate(horiz_accuracy = as.numeric(horiz_accuracy)) %>%
     mutate(latitude = round(latitude, 6)) %>%
     mutate(longitude = round(longitude, 6)) %>%
     select(redd_name, channel_type, orientation_type, latitude,
            longitude, horiz_accuracy, location_description)
-  new_redd_location_vals[] = lapply(new_redd_location_vals, remisc::set_na)
+  new_redd_location_vals[] = lapply(new_redd_location_vals, set_na)
   showModal(
     tags$div(id = "redd_location_update_modal",
              if ( !length(input$redd_locations_rows_selected) == 1 ) {

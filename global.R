@@ -21,7 +21,6 @@
 # Notes on install R 4.0.2
 #  1. Will need the following non-cran packages:
 #       remotes::install_github("arestrom/iformr")
-#       remotes::install_github("arestrom/remisc")
 #  2. Will need a .Renviron file with entries for pg_host, pg_user, and pg_pw: Credentials for AWS prod server
 #     Should also install Rtools4 and add path:
 #     PATH="${RTOOLS40_HOME}\usr\bin;${PATH}" to .Renviron file
@@ -170,7 +169,7 @@ library(mapedit)
 library(leaflet.extras)
 library(sf)
 library(lubridate)
-library(remisc)
+library(uuid)
 library(shinytoastr)
 library(shinycssloaders)
 library(stringi)
@@ -249,6 +248,55 @@ pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_h
 # # Get pooled connection to AWS prod instance in FISH DB...Amy
 # pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
 #                     port = "5432", user = pg_user("pg_user_prod_amy"), password = pg_pw("pg_pw_prod_amy"))
+
+# Copied from remisc to avoid installing ============================================
+
+# Convert empty strings to NAs
+set_na = function(x, na_value = "") {
+  x[x == na_value] <- NA
+  x
+}
+
+# Convert NAs to empty strings ("")
+set_empty = function(x) {
+  x[is.na(x)] <- ""
+  x
+}
+
+# Set all values in a vector or dataframe to NA, but preserve NA types
+set_na_type = function(x) {
+  if (typeof(x) == "logical") x = as.logical(NA)
+  else if (typeof(x) == "character") x = NA_character_
+  else if (typeof(x) == "integer") x = NA_integer_
+  else if (typeof(x) == "double") x = NA_real_
+  else x = NA_character_
+  x
+}
+
+# Generate a vector of Version 4 UUIDs (RFC 4122)
+get_uuid = function(n = 1L) {
+  if (!typeof(n) %in% c("double", "integer") ) {
+    stop("n must be an integer or double")
+  }
+  uuid::UUIDgenerate(use.time = FALSE, n = n)
+}
+
+# Extract portion of a string defined by a separator
+get_text_item <- function(x, item = 2, sep= " ") {
+  get_list_item <- function(x, item = 2) {
+    if(is.na(x[item])) {
+      x = NA
+    } else {
+      x = x[item]
+    }
+    x
+  }
+  # Create list with all text items
+  nms = strsplit(x, sep)
+  # Extract the text at item position from the list
+  nm = unlist(lapply(nms, get_list_item, item))
+  nm
+}
 
 # Define close function =============================================================
 

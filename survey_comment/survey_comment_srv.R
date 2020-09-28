@@ -552,12 +552,12 @@ observeEvent(input$comment_edit, {
     select(area_surveyed, abundance_condition, stream_condition, stream_flow,
            count_condition, survey_direction, survey_timing, visibility_condition,
            visibility_type, weather_type, comment_text = survey_comment_text)
-  old_comment_vals[] = lapply(old_comment_vals, remisc::set_empty)
+  old_comment_vals[] = lapply(old_comment_vals, set_empty)
   new_comment_vals = survey_comment_edit() %>%
     select(area_surveyed, abundance_condition, stream_condition, stream_flow,
            count_condition, survey_direction, survey_timing, visibility_condition,
            visibility_type, weather_type, comment_text)
-  new_comment_vals[] = lapply(new_comment_vals, remisc::set_empty)
+  new_comment_vals[] = lapply(new_comment_vals, set_empty)
   showModal(
     tags$div(id = "survey_comment_update_modal",
              if ( !length(input$survey_comments_rows_selected) == 1 ) {

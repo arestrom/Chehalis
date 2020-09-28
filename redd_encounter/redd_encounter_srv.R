@@ -331,13 +331,13 @@ observeEvent(input$redd_enc_edit, {
     mutate(redd_encounter_dt = format(redd_encounter_time, "%H:%M")) %>%
     select(redd_encounter_dt, redd_status, redd_count,
            redd_name, redd_comment)
-  old_redd_encounter_vals[] = lapply(old_redd_encounter_vals, remisc::set_na)
+  old_redd_encounter_vals[] = lapply(old_redd_encounter_vals, set_na)
   new_redd_encounter_vals = redd_encounter_edit() %>%
     mutate(redd_count = as.integer(redd_count)) %>%
     mutate(redd_encounter_dt = format(redd_encounter_dt, "%H:%M")) %>%
     select(redd_encounter_dt, redd_status, redd_count,
            redd_name, redd_comment)
-  new_redd_encounter_vals[] = lapply(new_redd_encounter_vals, remisc::set_na)
+  new_redd_encounter_vals[] = lapply(new_redd_encounter_vals, set_na)
   showModal(
     tags$div(id = "redd_encounter_update_modal",
              if ( !length(input$redd_encounters_rows_selected) == 1 ) {

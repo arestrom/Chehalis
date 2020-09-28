@@ -64,7 +64,7 @@ get_location_type = function() {
 reach_point_insert = function(new_reach_point_values) {
   new_insert_values = new_reach_point_values
   # Generate location_id
-  location_id = remisc::get_uuid(1L)
+  location_id = get_uuid(1L)
   created_by = new_insert_values$created_by
   # Pull out location_coordinates table data
   horizontal_accuracy = as.numeric(new_insert_values$horiz_accuracy)

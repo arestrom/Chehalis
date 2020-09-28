@@ -343,7 +343,7 @@ observeEvent(input$ind_redd_edit, {
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, individual_redd_comment)
-  old_individual_redd_vals[] = lapply(old_individual_redd_vals, remisc::set_na)
+  old_individual_redd_vals[] = lapply(old_individual_redd_vals, set_na)
   new_individual_redd_vals = individual_redd_edit() %>%
     mutate(redd_length_m = as.numeric(redd_length_m)) %>%
     mutate(redd_width_m = as.numeric(redd_width_m)) %>%
@@ -352,7 +352,7 @@ observeEvent(input$ind_redd_edit, {
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, individual_redd_comment)
-  new_individual_redd_vals[] = lapply(new_individual_redd_vals, remisc::set_na)
+  new_individual_redd_vals[] = lapply(new_individual_redd_vals, set_na)
   showModal(
     tags$div(id = "individual_redd_update_modal",
              if ( !length(input$individual_redds_rows_selected) == 1 ) {

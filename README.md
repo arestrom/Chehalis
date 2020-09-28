@@ -25,7 +25,6 @@ non-CRAN packages.
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("arestrom/remisc")
 remotes::install_github("arestrom/iformr")
 ```
 

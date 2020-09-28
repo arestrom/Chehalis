@@ -323,11 +323,11 @@ observeEvent(input$substrate_edit, {
   old_redd_substrate_vals = selected_redd_substrate_data() %>%
     select(substrate_level, substrate_type, substrate_pct)
   current_type = old_redd_substrate_vals$substrate_type
-  old_redd_substrate_vals[] = lapply(old_redd_substrate_vals, remisc::set_na)
+  old_redd_substrate_vals[] = lapply(old_redd_substrate_vals, set_na)
   new_redd_substrate_vals = redd_substrate_edit() %>%
     mutate(substrate_pct = as.integer(substrate_pct)) %>%
     select(substrate_level, substrate_type, substrate_pct)
-  new_redd_substrate_vals[] = lapply(new_redd_substrate_vals, remisc::set_na)
+  new_redd_substrate_vals[] = lapply(new_redd_substrate_vals, set_na)
   existing_substrate = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id)
   existing_pct = sum(existing_substrate$substrate_pct) - old_redd_substrate_vals$substrate_pct
   new_substrate_pct = existing_pct + new_redd_substrate_vals$substrate_pct

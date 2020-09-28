@@ -546,14 +546,14 @@ observeEvent(input$fish_loc_edit, {
     mutate(longitude = round(longitude, 6)) %>%
     select(fish_name, channel_type, orientation_type, latitude,
            longitude, horiz_accuracy, location_description)
-  old_fish_location_vals[] = lapply(old_fish_location_vals, remisc::set_na)
+  old_fish_location_vals[] = lapply(old_fish_location_vals, set_na)
   new_fish_location_vals = fish_location_edit() %>%
     mutate(horiz_accuracy = as.numeric(horiz_accuracy)) %>%
     mutate(latitude = round(latitude, 6)) %>%
     mutate(longitude = round(longitude, 6)) %>%
     select(fish_name, channel_type, orientation_type, latitude,
            longitude, horiz_accuracy, location_description)
-  new_fish_location_vals[] = lapply(new_fish_location_vals, remisc::set_na)
+  new_fish_location_vals[] = lapply(new_fish_location_vals, set_na)
   showModal(
     tags$div(id = "fish_location_update_modal",
              if ( !length(input$fish_locations_rows_selected) == 1 ) {

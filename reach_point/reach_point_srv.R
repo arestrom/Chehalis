@@ -505,7 +505,7 @@ observeEvent(input$reach_point_edit, {
     mutate(longitude = round(as.numeric(longitude), 6)) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description)
-  old_reach_point_vals[] = lapply(old_reach_point_vals, remisc::set_na)
+  old_reach_point_vals[] = lapply(old_reach_point_vals, set_na)
   new_reach_point_vals = reach_point_edit() %>%
     mutate(horiz_accuracy = as.numeric(horiz_accuracy)) %>%
     mutate(river_mile = as.numeric(river_mile)) %>%
@@ -513,7 +513,7 @@ observeEvent(input$reach_point_edit, {
     mutate(longitude = round(as.numeric(longitude), 6)) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description)
-  new_reach_point_vals[] = lapply(new_reach_point_vals, remisc::set_na)
+  new_reach_point_vals[] = lapply(new_reach_point_vals, set_na)
   showModal(
     tags$div(id = "reach_point_update_modal",
              if ( data_manager_flag() == TRUE & !Sys.getenv("USERNAME") %in% c("stromas", "ronnelmr") ) {
