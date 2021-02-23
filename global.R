@@ -234,8 +234,12 @@ pg_host <- function(host_label) {
 }
 
 # Get pooled connection to AWS prod instance FISH DB...Mine
-pool = pool::dbPool(RPostgres::Postgres(), dbname = "FISH", host = pg_host("pg_host_prod"),
-                    port = "5432", user = pg_user("pg_user"), password = pg_pw("pg_pwd_prod"))
+pool = pool::dbPool(RPostgres::Postgres(),
+                    dbname = "FISH",
+                    host = pg_host("pg_host_prod"),
+                    port = "5432",
+                    user = pg_user("pg_user"),
+                    password = pg_pw("pg_pwd_prod"))
 
 # Copied from remisc to avoid installing ============================================
 
