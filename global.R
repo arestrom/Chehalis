@@ -233,7 +233,7 @@ pg_host <- function(host_label) {
   Sys.getenv(host_label)
 }
 
-# Get pooled connection to AWS prod instance FISH DB...Mine
+# Get pooled connection to AWS prod instance FISH DB
 pool = pool::dbPool(RPostgres::Postgres(),
                     dbname = "FISH",
                     host = pg_host("pg_host_prod"),
