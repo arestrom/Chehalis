@@ -228,6 +228,13 @@ reach_point_update = function(reach_point_edit_values, selected_reach_point_data
                                       mod_by, location_id))
         dbGetRowsAffected(update_lc_result)
         dbClearResult(update_lc_result)
+      } else if ( is.na(latitude) | is.na(longitude) ) {
+        dump_coords_result = dbSendStatement(
+          con, glue_sql("DELETE FROM spawning_ground.location_coordinates ",
+                        "WHERE location_id = $1"))
+        dbBind(dump_coords_result, list(location_id))
+        dbGetRowsAffected(dump_coords_result)
+        dbClearResult(dump_coords_result)
       }
     }
   })
