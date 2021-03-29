@@ -156,6 +156,7 @@ output$reach_point_map <- renderLeaflet({
         weight = 2,
         fillOpacity = 0.5),
       editOptions = editToolbarOptions(
+        remove = FALSE,
         selectedPathOptions = selectedPathOptions()),
       singleFeature = TRUE) %>%
     addMeasure(primaryLengthUnit = "miles",
