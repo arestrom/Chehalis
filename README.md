@@ -12,53 +12,63 @@ application will only work for those who have been granted appropriate
 permissions to the database…a tightly restricted group. No credentials
 are stored in the R code. If you do not have permissions to the
 database, but want to explore the functionality, you will need to create
-and host your own database separately. You will then need to edit the
-connection string in the global.R file. Also, each user will need to set
-up connection credentials using an `.Renviron` file. A create script for
-the database can be requested. You can also find the most recent version
-of the SG data dictionary at: <https://arestrom.github.io/sgsdd/>
+and host your own database separately. A create script for the database
+can be requested. You can also find the most recent version of the SG
+data dictionary at: <https://arestrom.github.io/sgsdd/>
 
 ## Installation
 
-You will need to install R-4.0.2 or higher. You will also need some
-non-CRAN packages.
-
-``` r
-# install.packages("remotes")
-remotes::install_github("arestrom/iformr")
-```
-
-## Storing database connection credentials
-
-In order to use this application you **must** first be granted
-permissions to the database. You will then need to enter your
-credentials into your `.Renviron` file. Instructions on how to add
-credentials to your `.Renviron` file can be found in the Appendix
-section of:
-<https://cran.r-project.org/web/packages/httr/vignettes/api-packages.html>
+The application is distributed as a standalone Windows installer. It
+does not require admin rights to install. The installer will create a
+new directory called `Apps\Chehalis` under the users `Documents` folder.
+It will also place an icon on the users desktop for launching. The
+application comes bundled with a portable version of R and includes all
+package dependencies. No separate install of R is needed. This also
+means that the application should continue to work well into the future,
+even as the underlying technology and web of dependencies change. For
+details on how to package up a standalone installer for shiny
+applicatons see: <https://github.com/arestrom/refreeze>
 
 ## Start and stop the application
 
 Before launching the application you are strongly advised to make sure
 your default browser is set to something like `Chrome` or `Firefox`. The
-interface is unlikely to work correctly using a Microsoft browser. To
-make sure that the application starts in your browser rather than the
-default RStudio Viewer, open the `global.R` file in RStudio. You should
-see a green triangle icon next to `Run App` in the upper right-hand
-corner of you script pane. Click on the dialog icon to the right of `Run
-App` and select `Run External`. This only needs to be done once. Any
-time afterward that you want to start the application you just need to
-click on `Run App`.
+interface is unlikely to work correctly using a Microsoft browser. After
+double-clicking the desktop icon, it may take a few seconds to open.
+Please **do not** use the refresh icon in your browser when running the
+application. If you do you will need to close and reopen.
 
-Once the application is running you should see a red icon in the upper
-right-hand corner of the console indicating an active session. At the
-bottom of the RStudio console you should see something like:
+## Permissions
 
-`Listening on http://127.0.0.1:1234`
+In order to use this application you **must** first be granted
+permissions to the database. Please contact the database administrator
+to be whitelisted and granted the appropriate permissions. When you run
+the application the user name is set by default to be the same as the
+user name of the person that logged into the computer. This is by
+design. It allows recording the user name to the database `created_by`
+or `modified_by` fields anytime new entries, updates, or edits are
+committed.
 
-To stop the application close the web-interface in your browser. Then
-make sure to click on the red `Stop` icon in the upper right-hand corner
-of the RStudio console. This ends the active session. You should see the
-normal R prompt `>` at the bottom of the console window return. Make
-sure and stop the session as soon as you close the web interface in your
-browser so as to release any unneeded resources.
+The first time you use the application you will be automatically routed
+to an entry form to enable storing your database credentials and
+required connection information. Afterwards you will only see the
+credentials screen if changes are made to the server, or your password
+lapses. If that happens please contact the database administrator to
+verify that your password is current, and that you have entered the
+correct values for the server host and port. Database connection
+credentials are secured as encryted values in the Windows Credential
+Manager.
+
+### In case of a crash
+
+If after installing the application, it crashes, or fails to load,
+navigate to the `out.txt` folder in the App directory:
+`C:\Documents\Apps\Chehalis\out.txt`. The `out.txt` file will log the
+first fatal error encountered. Please include this information when
+reporting the error.
+
+After a crash you may also need to kill any active `R` processes using
+Windows Task Manager. Click `Ctrl-Alt-Delete` to open Task Manager. Then
+in the `Processes` tab, look for any processes named
+`R for Windows front-end` or `R for Windows terminal front-end`. You can
+right-click on these and select `End task` to terminate the process.
