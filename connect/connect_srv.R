@@ -27,7 +27,7 @@ observeEvent(input$test_connection, {
                    div(class="header", checked = NA,
                        p(glue("Please try again, or contact the database administrator ",
                               "to obtain the current connection parameters.")),
-                       HTML("<font color=#1d3f87><strong>Error message:</strong>"),
+                       HTML("<font color=#660033><strong>Error message:</strong><font color=#000080>"),
                        p(test_failed_reason)
                    )
                  }),
@@ -56,7 +56,7 @@ observeEvent(input$test_connection, {
                  size = "m",
                  title = "Success!",
                  withTags({
-                   div(class="header", checked=NA,
+                   div(class="header", checked = NA,
                        p(glue("Your connection parameters have been encrypted ",
                               "and written to the Windows Credential Manager.")),
                        HTML("<font color=#1d3f87><strong>IMPORTANT!</strong>"),
