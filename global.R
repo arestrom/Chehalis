@@ -173,6 +173,7 @@ library(uuid)
 library(shinytoastr)
 library(shinycssloaders)
 library(stringi)
+library(keyring)
 #library(reactlog)
 
 # Keep connections pane from opening
@@ -215,33 +216,41 @@ source("reach_point/reach_point_ui.R")
 source("reach_point/reach_point_global.R")
 # source("mobile_import/mobile_import_ui.R")
 # source("mobile_import/mobile_import_global.R")
+source("connect/connect_ui.R")
+source("connect/connect_global.R")
 
-# Define globals ================================================================
+# Define functions ================================================================
 
-# Function to get user for database
-pg_user <- function(user_label) {
-  Sys.getenv(user_label)
+# Function to extract credentials from the windows credentials store
+get_credentials = function(credential_label = NULL, keyring = NULL) {
+  tryCatch({
+    secret = key_get(service = credential_label,
+                     keyring = keyring)
+    return(secret)
+  }, error = function(e) {
+    msg = paste0("No credential was found with the label '", credential_label,
+                 "'. Please check the spelling, or add the new credential.")
+    cat("\n", msg, "\n\n")
+  })
 }
 
-# Function to get pw for database
-pg_pw <- function(pwd_label) {
-  Sys.getenv(pwd_label)
+# Test credentials...return boolean
+valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
+                                     host = get_credentials("pg_host_prod"),
+                                     port = get_credentials("pg_port_prod"),
+                                     user = Sys.getenv("USERNAME"),
+                                     password = get_credentials("pg_pwd_prod"),
+                                     dbname = get_credentials("pg_fish_prod_db"))
+
+# Get pooled connection to AWS prod instance if credentials valid
+if ( valid_connection == TRUE ) {
+  pool = pool::dbPool(RPostgres::Postgres(),
+                      dbname = get_credentials("pg_fish_prod_db"),
+                      host = get_credentials("pg_host_prod"),
+                      port = get_credentials("pg_port_prod"),
+                      user = Sys.getenv("USERNAME"),
+                      password = get_credentials("pg_pwd_prod"))
 }
-
-# Function to get pw for database
-pg_host <- function(host_label) {
-  Sys.getenv(host_label)
-}
-
-# Get pooled connection to AWS prod instance FISH DB
-pool = pool::dbPool(RPostgres::Postgres(),
-                    dbname = "FISH",
-                    host = pg_host("pg_host_prod"),
-                    port = "5432",
-                    user = pg_user("pg_user"),
-                    password = pg_pw("pg_pwd_prod"))
-
-# Copied from remisc to avoid installing ============================================
 
 # Convert empty strings to NAs
 set_na = function(x, na_value = "") {
@@ -293,8 +302,10 @@ get_text_item <- function(x, item = 2, sep= " ") {
 # Define close function =============================================================
 
 # Function to close pool
-onStop(function() {
-  poolClose(pool)
-})
+if ( valid_connection == TRUE ) {
+  onStop(function() {
+    poolClose(pool)
+  })
+}
 
 
