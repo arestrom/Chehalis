@@ -4,6 +4,7 @@
 
 # wria_select
 output$wria_select = renderUI({
+  req(valid_connection == TRUE)
   wria_list = get_wrias()
   selectizeInput("wria_select", label = NULL,
                  choices = wria_list,

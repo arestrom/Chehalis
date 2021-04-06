@@ -4,6 +4,8 @@
 
 dash_leftsidebar = dashboardSidebar(
   width = 175,
+  collapsed = FALSE,
+  div(textOutput("Welcome"), style = "padding: 20px"),
   sidebarMenu(
     id = "tabs",
     menuItem("Where and when", tabName = "wria_stream", icon = icon("globe")),
@@ -15,6 +17,7 @@ dash_leftsidebar = dashboardSidebar(
     menuItem("Sync to cloud DB", tabName = "cloud_sync", icon = icon("cloud-upload-alt")),
     menuItem("Reports", tabName = "reports", icon = icon("pencil-alt")),
     menuItem("Waterbody edit", tabName = "waterbody_edit", icon = icon("map-marked-alt")),
+    menuItem("Connect", tabName = "connect", icon = icon("user-lock")),
     menuItem("About", tabName = "about", icon = icon("info-circle"))
   )
 )

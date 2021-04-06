@@ -37,28 +37,34 @@ ui = dashboardPagePlus(
                   solidHeader = FALSE,
                   collapsed = FALSE,
                   survey_ui,
-                  width = 12,
-                  accordion(
-                    inputId = "survey_accordion",
-                    accordionItem(
-                      title = "Survey comments",
-                      color = "purple",
-                      collapsed = TRUE,
-                      survey_comment_ui
-                    ),
-                    accordionItem(
-                      title = "Survey intent",
-                      color = "purple",
-                      collapsed = TRUE,
-                      survey_intent_ui
-                    ),
-                    accordionItem(
-                      title = "Waterbody measurements",
-                      color = "purple",
-                      collapsed = TRUE,
-                      waterbody_meas_ui
-                    )
-                  )
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Survey comments",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  survey_comment_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Survey intent",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  survey_intent_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Waterbody measurements",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  waterbody_meas_ui,
+                  width = 12
                 ),
                 boxPlus(
                   title = "Species data",
@@ -70,74 +76,76 @@ ui = dashboardPagePlus(
                   width = 12
                 ),
                 boxPlus(
-                  title = "Fish encounters",
+                  title = "Fish location",
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  width = 12,
-                  accordion(
-                    inputId = "fish_accordion",
-                    accordionItem(
-                      title = "Fish location",
-                      color = "purple",
-                      collapsed = TRUE,
-                      fish_location_ui
-                    ),
-                    accordionItem(
-                      title = "Fish counts",
-                      color = "purple",
-                      collapsed = FALSE,
-                      fish_encounter_ui
-                    ),
-                    accordionItem(
-                      title = "Individual fish",
-                      color = "purple",
-                      collapsed = TRUE,
-                      individual_fish_ui
-                    ),
-                    accordionItem(
-                      title = "Fish length measurement",
-                      color = "purple",
-                      collapsed = TRUE,
-                      fish_length_measurement_ui
-                    )
-                  )
+                  fish_location_ui,
+                  width = 12
                 ),
                 boxPlus(
-                  title = "Redd encounters",
+                  title = "Fish counts",
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  width = 12,
-                  accordion(
-                    inputId = "redd_accordion",
-                    accordionItem(
-                      title = "Redd location",
-                      color = "purple",
-                      collapsed = TRUE,
-                      redd_location_ui
-                    ),
-                    accordionItem(
-                      title = "Redd counts",
-                      color = "purple",
-                      collapsed = FALSE,
-                      redd_encounter_ui
-                    ),
-                    accordionItem(
-                      title = "Individual redd",
-                      color = "purple",
-                      collapsed = TRUE,
-                      individual_redd_ui
-                    ),
-                    accordionItem(
-                      title = "Redd substrate",
-                      color = "purple",
-                      collapsed = TRUE,
-                      redd_substrate_ui
-                    )
-                  )
+                  fish_encounter_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Individual fish",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  individual_fish_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Fish length measurement",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  fish_length_measurement_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Redd location",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = FALSE,
+                  redd_location_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Redd counts",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = FALSE,
+                  redd_encounter_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Individual redd",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  individual_redd_ui,
+                  width = 12
+                ),
+                boxPlus(
+                  title = "Redd substrate",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = TRUE,
+                  redd_substrate_ui,
+                  width = 12
                 )
               )
       ),
@@ -237,6 +245,21 @@ ui = dashboardPagePlus(
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
+                  width = 12
+                )
+              )
+      ),
+      tabItem(tabName = "connect",
+              fluidRow(
+                br(),
+                br(),
+                boxPlus(
+                  title = "Verify and store database credentials",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = FALSE,
+                  connect_ui,
                   width = 12
                 )
               )
