@@ -164,6 +164,20 @@ ui = dashboardPagePlus(
                 )
               )
       ),
+      tabItem(tabName = "add_stream",
+              fluidRow(
+                br(),
+                br(),
+                boxPlus(
+                  title = "Add stream (ToDo)",
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = FALSE,
+                  width = 12
+                )
+              )
+      ),
       tabItem(tabName = "mobile_import",
               fluidRow(
                 br(),
@@ -207,40 +221,12 @@ ui = dashboardPagePlus(
                 )
               )
       ),
-      tabItem(tabName = "cloud_sync",
-              fluidRow(
-                br(),
-                br(),
-                boxPlus(
-                  title = "Sync local sqlite to cloud DB (ToDo)",
-                  closable = FALSE,
-                  collapsible = TRUE,
-                  solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
-                )
-              )
-      ),
       tabItem(tabName = "reports",
               fluidRow(
                 br(),
                 br(),
                 boxPlus(
                   title = "Generate automated reports (ToDo)",
-                  closable = FALSE,
-                  collapsible = TRUE,
-                  solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
-                )
-              )
-      ),
-      tabItem(tabName = "waterbody_edit",
-              fluidRow(
-                br(),
-                br(),
-                boxPlus(
-                  title = "Edit waterbody geometries (ToDo)",
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,

@@ -4,6 +4,8 @@
 
 # Define the survey data content
 wria_stream_ui = tags$div(
+  br(),
+  br(),
   div(id = "sthd_image", img(src = "steelhead.png", width = "60%")),
   br(),
   br(),
@@ -13,7 +15,6 @@ wria_stream_ui = tags$div(
   br(),
   div(id = "stream_text", p("Select stream (or click on map):")),
   uiOutput("stream_select"),
-  br(),
   br(),
   div(id = "year_text", p("Select survey year:")),
   uiOutput("year_select")
