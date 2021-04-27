@@ -8,4 +8,3 @@ dash_header = dashboardHeader(
     span(class = "logo-lg", "Chehalis Basin data"),
     img(src = "ShinyDashboardPlus.svg"))
 )
-
