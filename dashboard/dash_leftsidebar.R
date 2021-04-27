@@ -4,8 +4,6 @@
 
 dash_leftsidebar = dashboardSidebar(
   width = 175,
-  collapsed = FALSE,
-  div(textOutput("Welcome"), style = "padding: 20px"),
   sidebarMenu(
     id = "tabs",
     menuItem("Where and when", tabName = "wria_stream", icon = icon("globe")),

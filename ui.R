@@ -1,27 +1,31 @@
-ui = dashboardPagePlus(
-  shinyjs::useShinyjs(),
-  shinytoastr::useToastr(),
-  enable_preloader = TRUE,
+ui = dashboardPage(
   header = dash_header,
   sidebar = dash_leftsidebar,
   body = dashboardBody(
     includeCSS("www/ChehalisBasin.css"),
+    shinyjs::useShinyjs(),
+    shinytoastr::useToastr(),
     tabItems(
       tabItem(tabName = "wria_stream",
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
-                  title = "Select Stream and survey years",
+                box(
+                  title = "Select Stream and survey date range",
+                  loadingState(),
+                  width = 12,
+                  height = "800px",
                   closable = FALSE,
                   solidHeader = FALSE,
                   collapsible = TRUE,
                   collapsed = FALSE,
-                  width = 12,
-                  enable_sidebar = TRUE,
-                  sidebar_width = 25,
-                  sidebar_start_open = TRUE,
-                  sidebar_content = wria_stream_ui,
+                  sidebar = boxSidebar(
+                    id = "wria_stream_sidebar",
+                    width = 30,
+                    startOpen = TRUE,
+                    icon = shiny::icon("bars"),
+                    wria_stream_ui
+                  ),
                   leafletOutput("stream_map", height = "800px")
                 )
               )
@@ -30,122 +34,122 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Survey",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  survey_ui,
-                  width = 12
+                  survey_ui
                 ),
-                boxPlus(
+                box(
                   title = "Survey comments",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  survey_comment_ui,
-                  width = 12
+                  survey_comment_ui
                 ),
-                boxPlus(
+                box(
                   title = "Survey intent",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  survey_intent_ui,
-                  width = 12
+                  survey_intent_ui
                 ),
-                boxPlus(
+                box(
                   title = "Waterbody measurements",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  waterbody_meas_ui,
-                  width = 12
+                  waterbody_meas_ui
                 ),
-                boxPlus(
+                box(
                   title = "Species data",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  survey_event_ui,
-                  width = 12
+                  survey_event_ui
                 ),
-                boxPlus(
+                box(
                   title = "Fish location",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  fish_location_ui,
-                  width = 12
+                  collapsed = TRUE,
+                  fish_location_ui
                 ),
-                boxPlus(
+                box(
                   title = "Fish counts",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  fish_encounter_ui,
-                  width = 12
+                  fish_encounter_ui
                 ),
-                boxPlus(
+                box(
                   title = "Individual fish",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  individual_fish_ui,
-                  width = 12
+                  individual_fish_ui
                 ),
-                boxPlus(
+                box(
                   title = "Fish length measurement",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  fish_length_measurement_ui,
-                  width = 12
+                  fish_length_measurement_ui
                 ),
-                boxPlus(
+                box(
                   title = "Redd location",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  redd_location_ui,
-                  width = 12
+                  collapsed = TRUE,
+                  redd_location_ui
                 ),
-                boxPlus(
+                box(
                   title = "Redd counts",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  redd_encounter_ui,
-                  width = 12
+                  redd_encounter_ui
                 ),
-                boxPlus(
+                box(
                   title = "Individual redd",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  individual_redd_ui,
-                  width = 12
+                  individual_redd_ui
                 ),
-                boxPlus(
+                box(
                   title = "Redd substrate",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = TRUE,
-                  redd_substrate_ui,
-                  width = 12
+                  redd_substrate_ui
                 )
               )
       ),
@@ -153,14 +157,14 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Reach points",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  reach_point_ui,
-                  width = 12
+                  reach_point_ui
                 )
               )
       ),
@@ -168,13 +172,14 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Add stream (ToDo)",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
+                  collapsed = FALSE
+                  #add_stream_ui
                 )
               )
       ),
@@ -182,14 +187,14 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Import from Mobile data server (ToDo)",
+                  width = 12,
                   closable = FALSE,
                   collapsible = FALSE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
+                  collapsed = FALSE
                   #mobile_import_ui,
-                  width = 12
                 )
               )
       ),
@@ -197,13 +202,13 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Import from external file or database (ToDo)",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
+                  collapsed = FALSE
                 )
               )
       ),
@@ -211,13 +216,13 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Export data using interactive query generator (ToDo)",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
+                  collapsed = FALSE
                 )
               )
       ),
@@ -225,13 +230,13 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Generate automated reports (ToDo)",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
+                  collapsed = FALSE
                 )
               )
       ),
@@ -239,14 +244,14 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "Verify and store database credentials",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
                   collapsed = FALSE,
-                  connect_ui,
-                  width = 12
+                  connect_ui
                 )
               )
       ),
@@ -254,13 +259,13 @@ ui = dashboardPagePlus(
               fluidRow(
                 br(),
                 br(),
-                boxPlus(
+                box(
                   title = "About (ToDo)",
+                  width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
-                  width = 12
+                  collapsed = FALSE
                 )
               )
       )
