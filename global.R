@@ -67,7 +67,7 @@
 # 13. Verify all screens...especially edit, do not remove
 #     required values by backspacing and updating. !!!!!
 # 14. Change select for year in wria_stream_ui.R to
-#     data range. See MarSS example.
+#     date range. See MarSS example.
 # 15. Get rid of extra channel and orientation lut function
 #     for fish in fish_location_global.R. Can reuse
 #     function from redd_location.
@@ -103,7 +103,7 @@
 # 35. Add selectable input for the number of months of previous redds or carcasses to display
 #     in the redd_location and fish_location tables.
 #
-# AS 2021-04-27
+# AS 2021-04-28
 #==============================================================
 
 # Load libraries
@@ -157,24 +157,24 @@ source("fish_location/fish_location_ui.R")
 source("fish_location/fish_location_global.R")
 source("fish_encounter/fish_encounter_ui.R")
 source("fish_encounter/fish_encounter_global.R")
-source("individual_fish/individual_fish_ui.R")
-source("individual_fish/individual_fish_global.R")
-source("fish_length_measurement/fish_length_measurement_ui.R")
-source("fish_length_measurement/fish_length_measurement_global.R")
-source("redd_location/redd_location_ui.R")
-source("redd_location/redd_location_global.R")
-source("redd_encounter/redd_encounter_ui.R")
-source("redd_encounter/redd_encounter_global.R")
-source("individual_redd/individual_redd_ui.R")
-source("individual_redd/individual_redd_global.R")
-source("redd_substrate/redd_substrate_ui.R")
-source("redd_substrate/redd_substrate_global.R")
-source("reach_point/reach_point_ui.R")
-source("reach_point/reach_point_global.R")
-# source("mobile_import/mobile_import_ui.R")
-# source("mobile_import/mobile_import_global.R")
-source("connect/connect_ui.R")
-source("connect/connect_global.R")
+# source("individual_fish/individual_fish_ui.R")
+# source("individual_fish/individual_fish_global.R")
+# source("fish_length_measurement/fish_length_measurement_ui.R")
+# source("fish_length_measurement/fish_length_measurement_global.R")
+# source("redd_location/redd_location_ui.R")
+# source("redd_location/redd_location_global.R")
+# source("redd_encounter/redd_encounter_ui.R")
+# source("redd_encounter/redd_encounter_global.R")
+# source("individual_redd/individual_redd_ui.R")
+# source("individual_redd/individual_redd_global.R")
+# source("redd_substrate/redd_substrate_ui.R")
+# source("redd_substrate/redd_substrate_global.R")
+# source("reach_point/reach_point_ui.R")
+# source("reach_point/reach_point_global.R")
+# # source("mobile_import/mobile_import_ui.R")
+# # source("mobile_import/mobile_import_global.R")
+# source("connect/connect_ui.R")
+# source("connect/connect_global.R")
 
 # Define functions ================================================================
 

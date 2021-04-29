@@ -1,5 +1,5 @@
 # Main survey comment query
-get_survey_comment = function(survey_id) {
+get_survey_comment = function(pool, survey_id) {
   qry = glue("select sc.survey_comment_id, ars.area_surveyed, ",
              "fa.fish_abundance_condition as abundance_condition, ",
              "stc.stream_condition, sf.flow_type_short_description as stream_flow, ",
@@ -47,7 +47,7 @@ get_survey_comment = function(survey_id) {
 #==========================================================================
 
 # Area surveyed
-get_area_surveyed = function() {
+get_area_surveyed = function(pool) {
   qry = glue("select area_surveyed_id, area_surveyed ",
              "from spawning_ground.area_surveyed_lut ",
              "where obsolete_datetime is null")
@@ -60,7 +60,7 @@ get_area_surveyed = function() {
 }
 
 # Abundance
-get_abundance_condition = function() {
+get_abundance_condition = function(pool) {
   qry = glue("select fish_abundance_condition_id, fish_abundance_condition as abundance_condition ",
              "from spawning_ground.fish_abundance_condition_lut ",
              "where obsolete_datetime is null")
@@ -73,7 +73,7 @@ get_abundance_condition = function() {
 }
 
 # Stream condition
-get_stream_condition = function() {
+get_stream_condition = function(pool) {
   qry = glue("select stream_condition_id, stream_condition ",
              "from spawning_ground.stream_condition_lut ",
              "where obsolete_datetime is null")
@@ -86,7 +86,7 @@ get_stream_condition = function() {
 }
 
 # Stream condition
-get_stream_flow = function() {
+get_stream_flow = function(pool) {
   qry = glue("select stream_flow_type_id, flow_type_short_description as stream_flow ",
              "from spawning_ground.stream_flow_type_lut ",
              "where obsolete_datetime is null")
@@ -99,7 +99,7 @@ get_stream_flow = function() {
 }
 
 # Count condition
-get_count_condition = function() {
+get_count_condition = function(pool) {
   qry = glue("select survey_count_condition_id, survey_count_condition as count_condition ",
              "from spawning_ground.survey_count_condition_lut ",
              "where obsolete_datetime is null")
@@ -112,7 +112,7 @@ get_count_condition = function() {
 }
 
 # Survey direction
-get_survey_direction = function() {
+get_survey_direction = function(pool) {
   qry = glue("select survey_direction_id, survey_direction_description as survey_direction ",
              "from spawning_ground.survey_direction_lut ",
              "where obsolete_datetime is null")
@@ -125,7 +125,7 @@ get_survey_direction = function() {
 }
 
 # Survey timing
-get_survey_timing = function() {
+get_survey_timing = function(pool) {
   qry = glue("select survey_timing_id, survey_timing ",
              "from spawning_ground.survey_timing_lut ",
              "where obsolete_datetime is null")
@@ -138,7 +138,7 @@ get_survey_timing = function() {
 }
 
 # Visibility condition
-get_visibility_condition = function() {
+get_visibility_condition = function(pool) {
   qry = glue("select visibility_condition_id, visibility_condition ",
              "from spawning_ground.visibility_condition_lut ",
              "where obsolete_datetime is null")
@@ -151,7 +151,7 @@ get_visibility_condition = function() {
 }
 
 # Visibility type
-get_visibility_type = function() {
+get_visibility_type = function(pool) {
   qry = glue("select visibility_type_id, visibility_type_short_description as visibility_type ",
              "from spawning_ground.visibility_type_lut ",
              "where obsolete_datetime is null")
@@ -164,7 +164,7 @@ get_visibility_type = function() {
 }
 
 # Weather type
-get_weather_type = function() {
+get_weather_type = function(pool) {
   qry = glue("select weather_type_id, weather_type_description as weather_type ",
              "from spawning_ground.weather_type_lut ",
              "where obsolete_datetime is null")
@@ -181,7 +181,7 @@ get_weather_type = function() {
 #========================================================
 
 # Define the insert callback
-survey_comment_insert = function(new_comment_values) {
+survey_comment_insert = function(pool, new_comment_values) {
   new_comment_values = new_comment_values
   # Pull out data
   survey_id = new_comment_values$survey_id
@@ -233,7 +233,7 @@ survey_comment_insert = function(new_comment_values) {
 #========================================================
 
 # Define update callback
-survey_comment_update = function(comment_edit_values) {
+survey_comment_update = function(pool, comment_edit_values) {
   edit_values = comment_edit_values
   # Pull out data
   survey_comment_id = edit_values$survey_comment_id
@@ -285,7 +285,7 @@ survey_comment_update = function(comment_edit_values) {
 #========================================================
 
 # Define delete callback
-survey_comment_delete = function(delete_values) {
+survey_comment_delete = function(pool, delete_values) {
   survey_comment_id = delete_values$survey_comment_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

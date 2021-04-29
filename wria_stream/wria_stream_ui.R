@@ -6,16 +6,16 @@
 wria_stream_ui = tags$div(
   br(),
   br(),
-  div(id = "sthd_image", img(src = "steelhead.png", width = "60%")),
+  div(id = "sthd_image", img(src = "steelhead.png", width = "70%")),
   br(),
   br(),
   br(),
-  div(id = "wria_text", p("Select WRIA:")),
   uiOutput("wria_select"),
   br(),
-  div(id = "stream_text", p("Select stream (or click on map):")),
+  br(),
   uiOutput("stream_select"),
   br(),
-  div(id = "year_text", p("Select survey year:")),
-  uiOutput("year_select")
+  br(),
+  uiOutput("when_date_range")
 )
+

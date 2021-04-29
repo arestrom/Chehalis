@@ -1,6 +1,6 @@
 
 # Main fish_encounter query
-get_fish_encounter = function(survey_event_id) {
+get_fish_encounter = function(pool, survey_event_id) {
   qry = glue("select fe.fish_encounter_id, fe.fish_encounter_datetime as fish_encounter_time, ",
              "fe.fish_count, fs.fish_status_description as fish_status, ",
              "fe.fish_location_id, loc.location_name as fish_name, ",
@@ -45,7 +45,7 @@ get_fish_encounter = function(survey_event_id) {
 #==========================================================================
 
 # Fish status
-get_fish_status = function() {
+get_fish_status = function(pool) {
   qry = glue("select fish_status_id, fish_status_description as fish_status ",
              "from spawning_ground.fish_status_lut ",
              "where obsolete_datetime is null")
@@ -58,7 +58,7 @@ get_fish_status = function() {
 }
 
 # Sex
-get_sex = function() {
+get_sex = function(pool) {
   qry = glue("select sex_id, sex_description as sex ",
              "from spawning_ground.sex_lut ",
              "where obsolete_datetime is null")
@@ -71,7 +71,7 @@ get_sex = function() {
 }
 
 # Maturity
-get_maturity = function() {
+get_maturity = function(pool) {
   qry = glue("select maturity_id, maturity_short_description as maturity ",
              "from spawning_ground.maturity_lut ",
              "where obsolete_datetime is null")
@@ -84,7 +84,7 @@ get_maturity = function() {
 }
 
 # Origin
-get_origin = function() {
+get_origin = function(pool) {
   qry = glue("select origin_id, origin_description as origin ",
              "from spawning_ground.origin_lut ",
              "where obsolete_datetime is null")
@@ -97,7 +97,7 @@ get_origin = function() {
 }
 
 # CWT status
-get_cwt_status = function() {
+get_cwt_status = function(pool) {
   qry = glue("select cwt_detection_status_id, detection_status_description as cwt_status ",
              "from spawning_ground.cwt_detection_status_lut ",
              "where obsolete_datetime is null")
@@ -112,7 +112,7 @@ get_cwt_status = function() {
 }
 
 # Clip status
-get_clip_status = function() {
+get_clip_status = function(pool) {
   qry = glue("select adipose_clip_status_id, adipose_clip_status_description as clip_status ",
              "from spawning_ground.adipose_clip_status_lut ",
              "where obsolete_datetime is null")
@@ -127,7 +127,7 @@ get_clip_status = function() {
 }
 
 # Fish behavior
-get_fish_behavior = function() {
+get_fish_behavior = function(pool) {
   qry = glue("select fish_behavior_type_id, behavior_short_description as fish_behavior ",
              "from spawning_ground.fish_behavior_type_lut ",
              "where obsolete_datetime is null")
@@ -144,7 +144,7 @@ get_fish_behavior = function() {
 #========================================================
 
 # Define the insert callback
-fish_encounter_insert = function(new_fish_encounter_values) {
+fish_encounter_insert = function(pool, new_fish_encounter_values) {
   new_insert_values = new_fish_encounter_values
   # Pull out data
   survey_event_id = new_insert_values$survey_event_id
@@ -196,7 +196,7 @@ fish_encounter_insert = function(new_fish_encounter_values) {
 #========================================================
 
 # Define update callback
-fish_encounter_update = function(fish_encounter_edit_values) {
+fish_encounter_update = function(pool, fish_encounter_edit_values) {
   edit_values = fish_encounter_edit_values
   # Pull out data
   fish_encounter_id = edit_values$fish_encounter_id
@@ -247,7 +247,7 @@ fish_encounter_update = function(fish_encounter_edit_values) {
 #========================================================
 
 # Identify fish_encounter dependencies prior to delete
-get_fish_encounter_dependencies = function(fish_encounter_id) {
+get_fish_encounter_dependencies = function(pool, fish_encounter_id) {
   qry = glue("select ",
              "count(ind.individual_fish_id) as individual_fish, ",
              "count(fc.fish_capture_event_id) as fish_capture_event, ",
@@ -271,7 +271,7 @@ get_fish_encounter_dependencies = function(fish_encounter_id) {
 #========================================================
 
 # Define delete callback
-fish_encounter_delete = function(delete_values) {
+fish_encounter_delete = function(pool, delete_values) {
   fish_encounter_id = delete_values$fish_encounter_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

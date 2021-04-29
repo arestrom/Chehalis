@@ -1,5 +1,5 @@
 # Main survey event query
-get_survey_event = function(survey_id) {
+get_survey_event = function(pool, survey_id) {
   qry = glue("select se.survey_event_id, se.species_id, sp.common_name as species, ",
              "sd.survey_design_type_code as survey_design, ",
              "cw.detection_method_description as cwt_detect_method, ",
@@ -34,7 +34,7 @@ get_survey_event = function(survey_id) {
 #==========================================================================
 
 # Species
-get_event_species = function() {
+get_event_species = function(pool) {
   qry = glue("select species_id, common_name as species ",
              "from spawning_ground.species_lut ",
              "where obsolete_datetime is null")
@@ -47,7 +47,7 @@ get_event_species = function() {
 }
 
 # Survey design
-get_survey_design = function() {
+get_survey_design = function(pool) {
   qry = glue("select survey_design_type_id, survey_design_type_code as survey_design ",
              "from spawning_ground.survey_design_type_lut ",
              "where obsolete_datetime is null")
@@ -60,7 +60,7 @@ get_survey_design = function() {
 }
 
 # Survey design
-get_cwt_detect_method = function() {
+get_cwt_detect_method = function(pool) {
   qry = glue("select cwt_detection_method_id, detection_method_description as cwt_detect_method ",
              "from spawning_ground.cwt_detection_method_lut ",
              "where obsolete_datetime is null")
@@ -73,7 +73,7 @@ get_cwt_detect_method = function() {
 }
 
 # Run type
-get_run = function() {
+get_run = function(pool) {
   qry = glue("select run_id, run_short_description as run ",
              "from spawning_ground.run_lut ",
              "where obsolete_datetime is null")
@@ -109,7 +109,7 @@ dup_survey_event = function(new_survey_event_vals, existing_survey_event_vals) {
 #========================================================
 
 # Define the insert callback
-survey_event_insert = function(new_event_values) {
+survey_event_insert = function(pool, new_event_values) {
   new_event_values = new_event_values
   # Pull out data
   survey_id = new_event_values$survey_id
@@ -151,7 +151,7 @@ survey_event_insert = function(new_event_values) {
 #========================================================
 
 # Define update callback
-survey_event_update = function(survey_event_edit_values) {
+survey_event_update = function(pool, survey_event_edit_values) {
   edit_values = survey_event_edit_values
   # Pull out data
   survey_event_id = edit_values$survey_event_id
@@ -193,7 +193,7 @@ survey_event_update = function(survey_event_edit_values) {
 #========================================================
 
 # Identify survey dependencies prior to delete....do the same for survey_event
-get_survey_event_dependencies = function(survey_event_id) {
+get_survey_event_dependencies = function(pool, survey_event_id) {
   qry = glue("select ",
              "count(fe.fish_encounter_id) as fish_encounter, ",
              "count(rd.redd_encounter_id) as redd_encounter ",
@@ -215,7 +215,7 @@ get_survey_event_dependencies = function(survey_event_id) {
 #========================================================
 
 # Define delete callback
-survey_event_delete = function(delete_values) {
+survey_event_delete = function(pool, delete_values) {
   survey_event_id = delete_values$survey_event_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

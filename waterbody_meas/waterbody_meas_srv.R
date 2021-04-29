@@ -1,6 +1,7 @@
 
 output$clarity_type_select = renderUI({
-  clarity_type_list = get_clarity_type()$clarity_type
+  req(valid_connection == TRUE)
+  clarity_type_list = get_clarity_type(pool)$clarity_type
   clarity_type_list = c("", clarity_type_list)
   selectizeInput("clarity_type_select", label = "clarity_type",
                  choices = clarity_type_list, selected = NULL,
@@ -15,7 +16,7 @@ output$waterbody_measure = renderDT({
   waterbody_meas_title = glue("Water measurements for {input$stream_select} on ",
                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
-  waterbody_meas_data = get_waterbody_meas(selected_survey_data()$survey_id) %>%
+  waterbody_meas_data = get_waterbody_meas(pool, selected_survey_data()$survey_id) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_time = start_tmp_dt,
            end_temperature, end_tmp_time = end_tmp_dt, water_ph, created_dt, created_by, modified_dt,
            modified_by)
@@ -46,7 +47,7 @@ selected_waterbody_meas_data = reactive({
   req(input$tabs == "data_entry")
   req(input$surveys_rows_selected)
   req(input$waterbody_measure_rows_selected)
-  waterbody_meas_data = get_waterbody_meas(selected_survey_data()$survey_id)
+  waterbody_meas_data = get_waterbody_meas(pool, selected_survey_data()$survey_id)
   waterbody_meas_row = input$waterbody_measure_rows_selected
   selected_waterbody_meas = tibble(waterbody_measurement_id = waterbody_meas_data$waterbody_measurement_id[waterbody_meas_row],
                                    clarity_type = waterbody_meas_data$clarity_type[waterbody_meas_row],
@@ -90,7 +91,7 @@ observeEvent(input$waterbody_measure_rows_selected, {
 # Disable "New" button if a row of measurements already exists
 observe({
   input$insert_waterbody_meas
-  waterbody_meas_data = get_waterbody_meas(selected_survey_data()$survey_id)
+  waterbody_meas_data = get_waterbody_meas(pool, selected_survey_data()$survey_id)
   if (nrow(waterbody_meas_data) >= 1L) {
     shinyjs::disable("wbm_add")
   } else {
@@ -110,7 +111,7 @@ waterbody_meas_create = reactive({
   if ( clarity_type_input == "" ) {
     water_clarity_type_id = NA_character_
   } else {
-    clarity_type_vals = get_clarity_type()
+    clarity_type_vals = get_clarity_type(pool)
     water_clarity_type_id = clarity_type_vals %>%
       filter(clarity_type == clarity_type_input) %>%
       pull(water_clarity_type_id)
@@ -219,13 +220,13 @@ waterbody_meas_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_waterbody_meas, {
   tryCatch({
-    waterbody_meas_insert(waterbody_meas_insert_vals())
+    waterbody_meas_insert(pool, waterbody_meas_insert_vals())
     shinytoastr::toastr_success("New measurements were added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_waterbody_meas_insert_vals = get_waterbody_meas(selected_survey_data()$survey_id) %>%
+  post_waterbody_meas_insert_vals = get_waterbody_meas(pool, selected_survey_data()$survey_id) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph, created_dt, created_by, modified_dt,
            modified_by)
@@ -247,7 +248,7 @@ waterbody_meas_edit = reactive({
   if ( clarity_type_input == "" ) {
     water_clarity_type_id = NA_character_
   } else {
-    clarity_type_vals = get_clarity_type()
+    clarity_type_vals = get_clarity_type(pool)
     water_clarity_type_id = clarity_type_vals %>%
       filter(clarity_type == clarity_type_input) %>%
       pull(water_clarity_type_id)
@@ -310,9 +311,9 @@ observeEvent(input$wbm_edit, {
   old_wbm_vals = selected_waterbody_meas_data() %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph)
-  #old_wbm_vals[] = lapply(old_wbm_vals, set_na_type)
   new_wbm_vals = waterbody_meas_edit() %>%
     mutate(clarity_meter = as.numeric(clarity_meter)) %>%
+    mutate(flow_cfs = as.integer(flow_cfs)) %>%
     mutate(water_ph = as.numeric(water_ph)) %>%
     mutate(start_tmp_dt = format(start_tmp_dt, "%H:%M")) %>%
     mutate(start_temperature = as.numeric(start_temperature)) %>%
@@ -320,7 +321,6 @@ observeEvent(input$wbm_edit, {
     mutate(end_tmp_dt = format(end_tmp_dt, "%H:%M")) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph)
-  #new_wbm_vals[] = lapply(new_wbm_vals, set_na_type)
   showModal(
     tags$div(id = "waterbody_meas_update_modal",
              if ( !length(input$waterbody_measure_rows_selected) == 1 ) {
@@ -359,13 +359,13 @@ observeEvent(input$wbm_edit, {
 # Update DB and reload DT
 observeEvent(input$save_wbm_edits, {
   tryCatch({
-    waterbody_meas_update(waterbody_meas_edit())
+    waterbody_meas_update(pool, waterbody_meas_edit())
     shinytoastr::toastr_success("Measurements were edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_wbm_edit_vals = get_waterbody_meas(selected_survey_data()$survey_id) %>%
+  post_wbm_edit_vals = get_waterbody_meas(pool, selected_survey_data()$survey_id) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph, created_dt, created_by, modified_dt,
            modified_by)
@@ -379,7 +379,7 @@ observeEvent(input$save_wbm_edits, {
 # Generate values to show in modal
 output$waterbody_meas_modal_delete_vals = renderDT({
   waterbody_meas_modal_del_id = selected_waterbody_meas_data()$waterbody_measurement_id
-  waterbody_meas_modal_del_vals = get_waterbody_meas(selected_survey_data()$survey_id) %>%
+  waterbody_meas_modal_del_vals = get_waterbody_meas(pool, selected_survey_data()$survey_id) %>%
     filter(waterbody_measurement_id == waterbody_meas_modal_del_id) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph)
@@ -427,13 +427,13 @@ observeEvent(input$wbm_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_waterbody_meas, {
   tryCatch({
-    waterbody_meas_delete(selected_waterbody_meas_data())
+    waterbody_meas_delete(pool, selected_waterbody_meas_data())
     shinytoastr::toastr_success("Measurements were deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_waterbody_meas_delete_vals = get_waterbody_meas(selected_survey_data()$survey_id) %>%
+  post_waterbody_meas_delete_vals = get_waterbody_meas(pool, selected_survey_data()$survey_id) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_dt,
            end_temperature, end_tmp_dt, water_ph, created_dt, created_by, modified_dt,
            modified_by)

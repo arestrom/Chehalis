@@ -1,6 +1,7 @@
 
 output$intent_species_select = renderUI({
-  species_list = get_intent_species()$species
+  req(valid_connection == TRUE)
+  species_list = get_intent_species(pool)$species
   species_list = c("", species_list)
   selectizeInput("intent_species_select", label = "species",
                  choices = species_list, selected = NULL,
@@ -8,7 +9,8 @@ output$intent_species_select = renderUI({
 })
 
 output$intent_count_type_select = renderUI({
-  count_type_list = get_count_type()$count_type
+  req(valid_connection == TRUE)
+  count_type_list = get_count_type(pool)$count_type
   count_type_list = c("", count_type_list)
   selectizeInput("intent_count_type_select", label = "count_type",
                  choices = count_type_list, selected = NULL,
@@ -22,7 +24,7 @@ output$survey_intents = renderDT({
   survey_intent_title = glue("Survey intent for {input$stream_select} on ",
                              "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                              "to {selected_survey_data()$lo_rm}")
-  survey_intent_data = get_survey_intent(selected_survey_data()$survey_id) %>%
+  survey_intent_data = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type, created_dt, created_by, modified_dt, modified_by)
 
   # Generate table
@@ -54,7 +56,7 @@ selected_survey_intent_data = reactive({
   req(input$surveys_rows_selected)
   req(input$survey_intents_rows_selected)
   req(!is.na(selected_survey_data()$survey_id))
-  survey_intent_data = get_survey_intent(selected_survey_data()$survey_id)
+  survey_intent_data = get_survey_intent(pool, selected_survey_data()$survey_id)
   survey_intent_row = input$survey_intents_rows_selected
   selected_survey_intent = tibble(survey_intent_id = survey_intent_data$survey_intent_id[survey_intent_row],
                                   species = survey_intent_data$species[survey_intent_row],
@@ -91,7 +93,7 @@ survey_intent_create = reactive({
   if (intent_species_input == "" ) {
     species_id = NA_character_
   } else {
-    intent_species_vals = get_intent_species()
+    intent_species_vals = get_intent_species(pool)
     species_id = intent_species_vals %>%
       filter(species == intent_species_input) %>%
       pull(species_id)
@@ -101,7 +103,7 @@ survey_intent_create = reactive({
   if ( count_type_input == "" ) {
     count_type_id = NA
   } else {
-    count_type_vals = get_count_type()
+    count_type_vals = get_count_type(pool)
     count_type_id = count_type_vals %>%
       filter(count_type == count_type_input) %>%
       pull(count_type_id)
@@ -135,7 +137,7 @@ output$survey_intent_modal_insert_vals = renderDT({
 # Modal for new intents. Need a dup flag, multiple rows possible
 observeEvent(input$intent_add, {
   new_survey_intent_vals = survey_intent_create()
-  existing_survey_intent_vals = get_survey_intent(selected_survey_data()$survey_id) %>%
+  existing_survey_intent_vals = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type)
   dup_intent_flag = dup_survey_intent(new_survey_intent_vals, existing_survey_intent_vals)
   showModal(
@@ -186,13 +188,13 @@ survey_intent_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_survey_intent, {
   tryCatch({
-    survey_intent_insert(survey_intent_insert_vals())
+    survey_intent_insert(pool, survey_intent_insert_vals())
     shinytoastr::toastr_success("New survey intent was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_intent_insert_vals = get_survey_intent(selected_survey_data()$survey_id) %>%
+  post_intent_insert_vals = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type, created_dt, created_by, modified_dt, modified_by)
   replaceData(survey_intent_dt_proxy, post_intent_insert_vals)
 })
@@ -208,7 +210,7 @@ survey_intent_edit = reactive({
   if (intent_species_input == "" ) {
     species_id = NA_character_
   } else {
-    intent_species_vals = get_intent_species()
+    intent_species_vals = get_intent_species(pool)
     species_id = intent_species_vals %>%
       filter(species == intent_species_input) %>%
       pull(species_id)
@@ -218,7 +220,7 @@ survey_intent_edit = reactive({
   if ( count_type_input == "" ) {
     count_type_id = NA
   } else {
-    count_type_vals = get_count_type()
+    count_type_vals = get_count_type(pool)
     count_type_id = count_type_vals %>%
       filter(count_type == count_type_input) %>%
       pull(count_type_id)
@@ -254,7 +256,7 @@ observeEvent(input$intent_edit, {
     select(species, count_type)
   old_intent_vals = selected_survey_intent_data() %>%
     select(species, count_type)
-  all_intent_vals = get_survey_intent(selected_survey_data()$survey_id) %>%
+  all_intent_vals = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type)
   dup_intent_flag = dup_survey_intent(new_intent_vals, all_intent_vals)
   showModal(
@@ -303,13 +305,13 @@ observeEvent(input$intent_edit, {
 # Update DB and reload DT
 observeEvent(input$save_intent_edits, {
   tryCatch({
-    survey_intent_update(survey_intent_edit())
+    survey_intent_update(pool, survey_intent_edit())
     shinytoastr::toastr_success("Survey intent was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_intent_edit_vals = get_survey_intent(selected_survey_data()$survey_id) %>%
+  post_intent_edit_vals = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type, created_dt, created_by, modified_dt, modified_by)
   replaceData(survey_intent_dt_proxy, post_intent_edit_vals)
 })
@@ -321,7 +323,7 @@ observeEvent(input$save_intent_edits, {
 # Generate values to show in modal
 output$survey_intent_modal_delete_vals = renderDT({
   survey_intent_modal_del_id = selected_survey_intent_data()$survey_intent_id
-  survey_intent_modal_del_vals = get_survey_intent(selected_survey_data()$survey_id) %>%
+  survey_intent_modal_del_vals = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     filter(survey_intent_id == survey_intent_modal_del_id) %>%
     select(species, count_type)
   # Generate table
@@ -368,13 +370,13 @@ observeEvent(input$intent_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_survey_intent, {
   tryCatch({
-    survey_intent_delete(selected_survey_intent_data())
+    survey_intent_delete(pool, selected_survey_intent_data())
     shinytoastr::toastr_success("Survey intent was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  survey_intents_after_delete = get_survey_intent(selected_survey_data()$survey_id) %>%
+  survey_intents_after_delete = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type, created_dt, created_by, modified_dt, modified_by)
   replaceData(survey_intent_dt_proxy, survey_intents_after_delete)
 })

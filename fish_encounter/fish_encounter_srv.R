@@ -11,7 +11,10 @@ current_fish_locations = reactive({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_locs = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id)
+  fish_locs = get_fish_locations(pool, waterbody_id(),
+                                 up_rm, lo_rm,
+                                 survey_date,
+                                 species_id)
   return(fish_locs)
 })
 
@@ -24,7 +27,8 @@ output$fish_name_select = renderUI({
 })
 
 output$fish_status_select = renderUI({
-  fish_status_list = get_fish_status()$fish_status
+  req(valid_connection == TRUE)
+  fish_status_list = get_fish_status(pool)$fish_status
   fish_status_list = c("", fish_status_list)
   selectizeInput("fish_status_select", label = "fish_status",
                  choices = fish_status_list, selected = NULL,
@@ -32,7 +36,8 @@ output$fish_status_select = renderUI({
 })
 
 output$sex_select = renderUI({
-  sex_list = get_sex()$sex
+  req(valid_connection == TRUE)
+  sex_list = get_sex(pool)$sex
   sex_list = c("", sex_list)
   selectizeInput("sex_select", label = "fish_sex",
                  choices = sex_list, selected = "Not applicable",
@@ -40,7 +45,8 @@ output$sex_select = renderUI({
 })
 
 output$maturity_select = renderUI({
-  maturity_list = get_maturity()$maturity
+  req(valid_connection == TRUE)
+  maturity_list = get_maturity(pool)$maturity
   maturity_list = c("", maturity_list)
   selectizeInput("maturity_select", label = "maturity",
                  choices = maturity_list, selected = "Not applicable",
@@ -48,7 +54,8 @@ output$maturity_select = renderUI({
 })
 
 output$origin_select = renderUI({
-  origin_list = get_origin()$origin
+  req(valid_connection == TRUE)
+  origin_list = get_origin(pool)$origin
   origin_list = c("", origin_list)
   selectizeInput("origin_select", label = "origin",
                  choices = origin_list, selected = "Unknown",
@@ -56,7 +63,8 @@ output$origin_select = renderUI({
 })
 
 output$cwt_status_select = renderUI({
-  cwt_status_list = get_cwt_status()$cwt_status
+  req(valid_connection == TRUE)
+  cwt_status_list = get_cwt_status(pool)$cwt_status
   cwt_status_list = c("", cwt_status_list)
   selectizeInput("cwt_status_select", label = "cwt_status",
                  choices = cwt_status_list, selected = "Not applicable",
@@ -64,7 +72,8 @@ output$cwt_status_select = renderUI({
 })
 
 output$clip_status_select = renderUI({
-  clip_status_list = get_clip_status()$clip_status
+  req(valid_connection == TRUE)
+  clip_status_list = get_clip_status(pool)$clip_status
   clip_status_list = c("", clip_status_list)
   selectizeInput("clip_status_select", label = "clip_status",
                  choices = clip_status_list, selected = "Not applicable",
@@ -72,7 +81,8 @@ output$clip_status_select = renderUI({
 })
 
 output$fish_behavior_select = renderUI({
-  fish_behavior_list = get_fish_behavior()$fish_behavior
+  req(valid_connection == TRUE)
+  fish_behavior_list = get_fish_behavior(pool)$fish_behavior
   fish_behavior_list = c("", fish_behavior_list)
   selectizeInput("fish_behavior_select", label = "fish_behavior",
                  choices = fish_behavior_list, selected = NULL,
@@ -85,6 +95,13 @@ output$prev_counted_select = renderUI({
                  choices = prev_counted_list, selected = "Yes",
                  width = "90px")
 })
+
+
+
+# STOPPED HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
 
 #========================================================
 # Primary datatable for fish_encounters
