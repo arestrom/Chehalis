@@ -103,8 +103,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = TRUE
-                  #individual_fish_ui
+                  collapsed = TRUE,
+                  individual_fish_ui
                 ),
                 box(
                   title = "Fish length measurement",
