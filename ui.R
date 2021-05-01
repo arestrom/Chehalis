@@ -112,8 +112,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = TRUE
-                  #fish_length_measurement_ui
+                  collapsed = TRUE,
+                  fish_length_measurement_ui
                 ),
                 box(
                   title = "Redd location",
@@ -121,8 +121,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE
-                  #redd_location_ui
+                  collapsed = FALSE,
+                  redd_location_ui
                 ),
                 box(
                   title = "Redd counts",
@@ -130,8 +130,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE
-                  #redd_encounter_ui
+                  collapsed = FALSE,
+                  redd_encounter_ui
                 ),
                 box(
                   title = "Individual redd",
@@ -240,21 +240,21 @@ ui = dashboardPage(
                 )
               )
       ),
-      # tabItem(tabName = "connect",
-      #         fluidRow(
-      #           br(),
-      #           br(),
-      #           box(
-      #             title = "Verify and store database credentials",
-      #             width = 12,
-      #             closable = FALSE,
-      #             collapsible = TRUE,
-      #             solidHeader = FALSE,
-      #             collapsed = FALSE,
-      #             connect_ui
-      #           )
-      #         )
-      # ),
+      tabItem(tabName = "connect",
+              fluidRow(
+                br(),
+                br(),
+                box(
+                  title = "Verify and store database credentials",
+                  width = 12,
+                  closable = FALSE,
+                  collapsible = TRUE,
+                  solidHeader = FALSE,
+                  collapsed = FALSE,
+                  connect_ui
+                )
+              )
+      ),
       tabItem(tabName = "about",
               fluidRow(
                 br(),

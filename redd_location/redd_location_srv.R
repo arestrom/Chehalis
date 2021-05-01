@@ -4,7 +4,8 @@
 #========================================================
 
 output$redd_channel_type_select = renderUI({
-  channel_type_list = get_redd_channel_type()$channel_type
+  req(valid_connection == TRUE)
+  channel_type_list = get_redd_channel_type(pool)$channel_type
   channel_type_list = c("", channel_type_list)
   selectizeInput("redd_channel_type_select", label = "channel_type",
                  choices = channel_type_list, selected = NULL,
@@ -12,7 +13,8 @@ output$redd_channel_type_select = renderUI({
 })
 
 output$redd_orientation_type_select = renderUI({
-  orientation_type_list = get_redd_orientation_type()$orientation_type
+  req(valid_connection == TRUE)
+  orientation_type_list = get_redd_orientation_type(pool)$orientation_type
   orientation_type_list = c("", orientation_type_list)
   selectizeInput("redd_orientation_type_select", label = "orientation_type",
                  choices = orientation_type_list, selected = NULL,
@@ -37,7 +39,10 @@ output$redd_locations = renderDT({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  redd_location_data = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  redd_location_data = get_redd_locations(pool, waterbody_id(),
+                                          up_rm, lo_rm,
+                                          survey_date,
+                                          species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -77,7 +82,10 @@ selected_redd_location_data = reactive({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  redd_location_data = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id)
+  redd_location_data = get_redd_locations(pool, waterbody_id(),
+                                          up_rm, lo_rm,
+                                          survey_date,
+                                          species_id)
   redd_location_row = input$redd_locations_rows_selected
   selected_redd_location = tibble(redd_location_id = redd_location_data$redd_location_id[redd_location_row],
                                   location_coordinates_id = redd_location_data$location_coordinates_id[redd_location_row],
@@ -129,16 +137,25 @@ output$redd_map <- renderLeaflet({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  redd_coords = get_redd_locations(waterbody_id(), up_rm, lo_rm,
-                                   survey_date, species_id) %>%
+  redd_coords = get_redd_locations(pool, waterbody_id(),
+                                   up_rm, lo_rm,
+                                   survey_date,
+                                   species_id) %>%
     filter(!is.na(latitude) & !is.na(longitude)) %>%
-    mutate(min_lat = min(latitude),
-           min_lon = min(longitude),
-           max_lat = max(latitude),
-           max_lon = max(longitude)) %>%
+    mutate(min_lat = NA_real_,
+           min_lon = NA_real_,
+           max_lat = NA_real_,
+           max_lon = NA_real_) %>%
     select(redd_location_id, redd_name, latitude, longitude,
            min_lat, min_lon, max_lat, max_lon)
-  #print(redd_coords)
+  if ( nrow(redd_coords) > 0L ) {
+    redd_coords = redd_coords %>%
+      mutate(min_lat = min(latitude),
+             min_lon = min(longitude),
+             max_lat = max(latitude),
+             max_lon = max(longitude))
+  }
+
   # Get data for setting map bounds ========================
   if ( nrow(redd_coords) == 0L |
        is.na(input$redd_latitude_input) |
@@ -302,7 +319,7 @@ redd_location_create = reactive({
   if ( redd_channel_type_input == "" ) {
     stream_channel_type_id = NA
   } else {
-    redd_channel_type_vals = get_redd_channel_type()
+    redd_channel_type_vals = get_redd_channel_type(pool)
     stream_channel_type_id = redd_channel_type_vals %>%
       filter(channel_type == redd_channel_type_input) %>%
       pull(stream_channel_type_id)
@@ -312,7 +329,7 @@ redd_location_create = reactive({
   if ( redd_orientation_type_input == "" ) {
     location_orientation_type_id = NA
   } else {
-    redd_orientation_type_vals = get_redd_orientation_type()
+    redd_orientation_type_vals = get_redd_orientation_type(pool)
     location_orientation_type_id = redd_orientation_type_vals %>%
       filter(orientation_type == redd_orientation_type_input) %>%
       pull(location_orientation_type_id)
@@ -356,7 +373,10 @@ observeEvent(input$redd_loc_add, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  old_redd_location_vals = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  old_redd_location_vals = get_redd_locations(pool, waterbody_id(),
+                                              up_rm, lo_rm,
+                                              survey_date,
+                                              species_id) %>%
     filter(!redd_name %in% c("", "no location data")) %>%
     pull(redd_name)
   showModal(
@@ -418,7 +438,7 @@ observeEvent(input$insert_redd_location, {
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   tryCatch({
-    redd_location_insert(redd_location_insert_vals())
+    redd_location_insert(pool, redd_location_insert_vals())
     shinytoastr::toastr_success("New redd location was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
@@ -429,7 +449,10 @@ observeEvent(input$insert_redd_location, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  post_redd_location_insert_vals = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  post_redd_location_insert_vals = get_redd_locations(pool, waterbody_id(),
+                                                      up_rm, lo_rm,
+                                                      survey_date,
+                                                      species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -446,7 +469,10 @@ observeEvent(input$insert_redd_encounter, {
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   # Update redd location table
-  redd_locs_after_redd_count_insert = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  redd_locs_after_redd_count_insert = get_redd_locations(pool, waterbody_id(),
+                                                         up_rm, lo_rm,
+                                                         survey_date,
+                                                         species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -469,7 +495,7 @@ redd_location_edit = reactive({
   if ( redd_channel_type_input == "" ) {
     stream_channel_type_id = NA
   } else {
-    redd_channel_type_vals = get_redd_channel_type()
+    redd_channel_type_vals = get_redd_channel_type(pool)
     stream_channel_type_id = redd_channel_type_vals %>%
       filter(channel_type == redd_channel_type_input) %>%
       pull(stream_channel_type_id)
@@ -479,7 +505,7 @@ redd_location_edit = reactive({
   if ( redd_orientation_type_input == "" ) {
     location_orientation_type_id = NA
   } else {
-    redd_orientation_type_vals = get_redd_orientation_type()
+    redd_orientation_type_vals = get_redd_orientation_type(pool)
     location_orientation_type_id = redd_orientation_type_vals %>%
       filter(orientation_type == redd_orientation_type_input) %>%
       pull(location_orientation_type_id)
@@ -501,7 +527,7 @@ redd_location_edit = reactive({
 
 dependent_redd_location_surveys = reactive({
   redd_loc_id = selected_redd_location_data()$redd_location_id
-  redd_loc_srv = get_redd_location_surveys(redd_loc_id)
+  redd_loc_srv = get_redd_location_surveys(pool, redd_loc_id)
   return(redd_loc_srv)
 })
 
@@ -600,7 +626,7 @@ observeEvent(input$save_redd_loc_edits, {
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   tryCatch({
-    redd_location_update(redd_location_edit(), selected_redd_location_data())
+    redd_location_update(pool, redd_location_edit(), selected_redd_location_data())
     shinytoastr::toastr_success("Redd location was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
@@ -612,7 +638,10 @@ observeEvent(input$save_redd_loc_edits, {
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   # Update redd location table
-  post_redd_location_edit_vals = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  post_redd_location_edit_vals = get_redd_locations(pool, waterbody_id(),
+                                                    up_rm, lo_rm,
+                                                    survey_date,
+                                                    species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -629,7 +658,10 @@ observeEvent(input$save_redd_enc_edits, {
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   # Update redd location table
-  redd_locs_after_redd_count_edit = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  redd_locs_after_redd_count_edit = get_redd_locations(pool, waterbody_id(),
+                                                       up_rm, lo_rm,
+                                                       survey_date,
+                                                       species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -652,7 +684,10 @@ output$redd_location_modal_delete_vals = renderDT({
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   redd_location_modal_del_id = selected_redd_location_data()$redd_location_id
-  redd_location_modal_del_vals = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  redd_location_modal_del_vals = get_redd_locations(pool, waterbody_id(),
+                                                    up_rm, lo_rm,
+                                                    survey_date,
+                                                    species_id) %>%
     filter(redd_location_id == redd_location_modal_del_id) %>%
     select(redd_name, channel_type, orientation_type, latitude,
            longitude, horiz_accuracy, location_description)
@@ -671,7 +706,7 @@ output$redd_location_modal_delete_vals = renderDT({
 # Reactive to hold dependencies
 redd_location_dependencies = reactive({
   redd_location_id = selected_redd_location_data()$redd_location_id
-  redd_loc_dep = get_redd_location_dependencies(redd_location_id)
+  redd_loc_dep = get_redd_location_dependencies(pool, redd_location_id)
   return(redd_loc_dep)
 })
 
@@ -745,7 +780,7 @@ observeEvent(input$delete_redd_location, {
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   tryCatch({
-    redd_location_delete(selected_redd_location_data())
+    redd_location_delete(pool, selected_redd_location_data())
     shinytoastr::toastr_success("Redd location was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
@@ -756,7 +791,10 @@ observeEvent(input$delete_redd_location, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  redd_locations_after_delete = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  redd_locations_after_delete = get_redd_locations(pool, waterbody_id(),
+                                                   up_rm, lo_rm,
+                                                   survey_date,
+                                                   species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -770,7 +808,10 @@ observeEvent(input$delete_redd_encounter, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  redd_locations_after_encounter_delete = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  redd_locations_after_encounter_delete = get_redd_locations(pool, waterbody_id(),
+                                                             up_rm, lo_rm,
+                                                             survey_date,
+                                                             species_id) %>%
     select(survey_dt, species, redd_name, redd_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)

@@ -102,6 +102,7 @@
 # 34. Set labels for column headers
 # 35. Add selectable input for the number of months of previous redds or carcasses to display
 #     in the redd_location and fish_location tables.
+# 36. Prevent ability to edit fish_count > 1 if anything is entered for individual_fish!!!!!
 #
 # AS 2021-04-28
 #==============================================================
@@ -159,12 +160,12 @@ source("fish_encounter/fish_encounter_ui.R")
 source("fish_encounter/fish_encounter_global.R")
 source("individual_fish/individual_fish_ui.R")
 source("individual_fish/individual_fish_global.R")
-# source("fish_length_measurement/fish_length_measurement_ui.R")
-# source("fish_length_measurement/fish_length_measurement_global.R")
-# source("redd_location/redd_location_ui.R")
-# source("redd_location/redd_location_global.R")
-# source("redd_encounter/redd_encounter_ui.R")
-# source("redd_encounter/redd_encounter_global.R")
+source("fish_length_measurement/fish_length_measurement_ui.R")
+source("fish_length_measurement/fish_length_measurement_global.R")
+source("redd_location/redd_location_ui.R")
+source("redd_location/redd_location_global.R")
+source("redd_encounter/redd_encounter_ui.R")
+source("redd_encounter/redd_encounter_global.R")
 # source("individual_redd/individual_redd_ui.R")
 # source("individual_redd/individual_redd_global.R")
 # source("redd_substrate/redd_substrate_ui.R")
@@ -173,8 +174,8 @@ source("individual_fish/individual_fish_global.R")
 # source("reach_point/reach_point_global.R")
 # # source("mobile_import/mobile_import_ui.R")
 # # source("mobile_import/mobile_import_global.R")
-# source("connect/connect_ui.R")
-# source("connect/connect_global.R")
+source("connect/connect_ui.R")
+source("connect/connect_global.R")
 
 # Define functions ================================================================
 
@@ -193,21 +194,40 @@ get_credentials = function(credential_label = NULL, keyring = NULL) {
 
 # Test credentials...return boolean
 valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
-                                     host = get_credentials("pg_host_prod"),
-                                     port = get_credentials("pg_port_prod"),
+                                     host = "localhost",
+                                     port = "5432",
                                      user = Sys.getenv("USERNAME"),
-                                     password = get_credentials("pg_pwd_prod"),
-                                     dbname = get_credentials("pg_fish_prod_db"))
+                                     password = get_credentials("pg_pwd_local"),
+                                     dbname = get_credentials("pg_fish_local_db"))
 
 # Get pooled connection to AWS prod instance if credentials valid
 if ( valid_connection == TRUE ) {
   pool = pool::dbPool(RPostgres::Postgres(),
-                      dbname = get_credentials("pg_fish_prod_db"),
-                      host = get_credentials("pg_host_prod"),
-                      port = get_credentials("pg_port_prod"),
+                      dbname = get_credentials("pg_fish_local_db"),
+                      host = "localhost",
+                      port = "5432",
                       user = Sys.getenv("USERNAME"),
-                      password = get_credentials("pg_pwd_prod"))
+                      password = get_credentials("pg_pwd_local"))
 }
+
+
+# # Test credentials...return boolean
+# valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
+#                                      host = get_credentials("pg_host_prod"),
+#                                      port = get_credentials("pg_port_prod"),
+#                                      user = Sys.getenv("USERNAME"),
+#                                      password = get_credentials("pg_pwd_prod"),
+#                                      dbname = get_credentials("pg_fish_prod_db"))
+#
+# # Get pooled connection to AWS prod instance if credentials valid
+# if ( valid_connection == TRUE ) {
+#   pool = pool::dbPool(RPostgres::Postgres(),
+#                       dbname = get_credentials("pg_fish_prod_db"),
+#                       host = get_credentials("pg_host_prod"),
+#                       port = get_credentials("pg_port_prod"),
+#                       user = Sys.getenv("USERNAME"),
+#                       password = get_credentials("pg_pwd_prod"))
+# }
 
 # Convert empty strings to NAs
 set_na = function(x, na_value = "") {

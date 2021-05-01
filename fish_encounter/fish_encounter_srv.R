@@ -92,7 +92,7 @@ output$fish_behavior_select = renderUI({
 output$prev_counted_select = renderUI({
   prev_counted_list = c("No", "Yes")
   selectizeInput("prev_counted_select", label = "prev_counted",
-                 choices = prev_counted_list, selected = "Yes",
+                 choices = prev_counted_list, selected = "No",
                  width = "90px")
 })
 
@@ -225,7 +225,7 @@ fish_encounter_create = reactive({
     fish_location_id = NA
     fish_name_input = NA
   } else {
-    fish_location = current_fish_locations(pool) %>%
+    fish_location = current_fish_locations() %>%
       filter(fish_name == loc_select)
     fish_location_id = fish_location$fish_location_id
     fish_name_input = fish_location$fish_name

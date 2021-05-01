@@ -81,7 +81,10 @@ selected_fish_location_data = reactive({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_location_data = get_fish_locations(pool, waterbody_id(), up_rm, lo_rm, survey_date, species_id)
+  fish_location_data = get_fish_locations(pool, waterbody_id(),
+                                          up_rm, lo_rm,
+                                          survey_date,
+                                          species_id)
   fish_location_row = input$fish_locations_rows_selected
   selected_fish_location = tibble(fish_location_id = fish_location_data$fish_location_id[fish_location_row],
                                   location_coordinates_id = fish_location_data$location_coordinates_id[fish_location_row],
@@ -137,12 +140,20 @@ output$fish_map <- renderLeaflet({
                                       survey_date,
                                       species_id) %>%
     filter(!is.na(latitude) & !is.na(longitude)) %>%
-    mutate(min_lat = min(latitude),
-           min_lon = min(longitude),
-           max_lat = max(latitude),
-           max_lon = max(longitude)) %>%
+    mutate(min_lat = NA_real_,
+           min_lon = NA_real_,
+           max_lat = NA_real_,
+           max_lon = NA_real_) %>%
     select(fish_location_id, fish_name, latitude, longitude,
            min_lat, min_lon, max_lat, max_lon)
+  if ( nrow(carcass_coords) > 0L ) {
+    carcass_coords = carcass_coords %>%
+      mutate(min_lat = min(latitude),
+             min_lon = min(longitude),
+             max_lat = max(latitude),
+             max_lon = max(longitude))
+  }
+
   # Get data for setting map bounds ========================
   if ( nrow(carcass_coords) == 0L |
        is.na(input$fish_latitude_input) |
@@ -369,10 +380,9 @@ observeEvent(input$fish_loc_add, {
   showModal(
     # Verify required fields have data...none can be blank
     tags$div(id = "fish_location_insert_modal",
-             if ( is.na(new_fish_location_vals$stream_channel_type_id) |
-                  is.na(new_fish_location_vals$location_orientation_type_id) |
-                  is.na(new_fish_location_vals$latitude) |
-                  is.na(new_fish_location_vals$longitude) ) {
+             if ( is.na(new_fish_location_vals$fish_name) |
+                  is.na(new_fish_location_vals$stream_channel_type_id) |
+                  is.na(new_fish_location_vals$location_orientation_type_id) ) {
                modalDialog (
                  size = "m",
                  title = "Warning",
