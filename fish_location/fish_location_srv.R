@@ -4,7 +4,8 @@
 #========================================================
 
 output$fish_channel_type_select = renderUI({
-  channel_type_list = get_fish_channel_type()$channel_type
+  req(valid_connection == TRUE)
+  channel_type_list = get_fish_channel_type(pool)$channel_type
   channel_type_list = c("", channel_type_list)
   selectizeInput("fish_channel_type_select", label = "channel_type",
                  choices = channel_type_list, selected = NULL,
@@ -12,7 +13,8 @@ output$fish_channel_type_select = renderUI({
 })
 
 output$fish_orientation_type_select = renderUI({
-  orientation_type_list = get_fish_orientation_type()$orientation_type
+  req(valid_connection == TRUE)
+  orientation_type_list = get_fish_orientation_type(pool)$orientation_type
   orientation_type_list = c("", orientation_type_list)
   selectizeInput("fish_orientation_type_select", label = "orientation_type",
                  choices = orientation_type_list, selected = NULL,
@@ -37,7 +39,10 @@ output$fish_locations = renderDT({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_location_data = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  fish_location_data = get_fish_locations(pool, waterbody_id(),
+                                          up_rm, lo_rm,
+                                          survey_date,
+                                          species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -76,7 +81,10 @@ selected_fish_location_data = reactive({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_location_data = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id)
+  fish_location_data = get_fish_locations(pool, waterbody_id(),
+                                          up_rm, lo_rm,
+                                          survey_date,
+                                          species_id)
   fish_location_row = input$fish_locations_rows_selected
   selected_fish_location = tibble(fish_location_id = fish_location_data$fish_location_id[fish_location_row],
                                   location_coordinates_id = fish_location_data$location_coordinates_id[fish_location_row],
@@ -127,15 +135,25 @@ output$fish_map <- renderLeaflet({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  carcass_coords = get_fish_locations(waterbody_id(), up_rm, lo_rm,
-                                      survey_date, species_id) %>%
+  carcass_coords = get_fish_locations(pool, waterbody_id(),
+                                      up_rm, lo_rm,
+                                      survey_date,
+                                      species_id) %>%
     filter(!is.na(latitude) & !is.na(longitude)) %>%
-    mutate(min_lat = min(latitude),
-           min_lon = min(longitude),
-           max_lat = max(latitude),
-           max_lon = max(longitude)) %>%
+    mutate(min_lat = NA_real_,
+           min_lon = NA_real_,
+           max_lat = NA_real_,
+           max_lon = NA_real_) %>%
     select(fish_location_id, fish_name, latitude, longitude,
            min_lat, min_lon, max_lat, max_lon)
+  if ( nrow(carcass_coords) > 0L ) {
+    carcass_coords = carcass_coords %>%
+      mutate(min_lat = min(latitude),
+             min_lon = min(longitude),
+             max_lat = max(latitude),
+             max_lon = max(longitude))
+  }
+
   # Get data for setting map bounds ========================
   if ( nrow(carcass_coords) == 0L |
        is.na(input$fish_latitude_input) |
@@ -299,7 +317,7 @@ fish_location_create = reactive({
   if ( fish_channel_type_input == "" ) {
     stream_channel_type_id = NA
   } else {
-    fish_channel_type_vals = get_fish_channel_type()
+    fish_channel_type_vals = get_fish_channel_type(pool)
     stream_channel_type_id = fish_channel_type_vals %>%
       filter(channel_type == fish_channel_type_input) %>%
       pull(stream_channel_type_id)
@@ -309,7 +327,7 @@ fish_location_create = reactive({
   if ( fish_orientation_type_input == "" ) {
     location_orientation_type_id = NA
   } else {
-    fish_orientation_type_vals = get_fish_orientation_type()
+    fish_orientation_type_vals = get_fish_orientation_type(pool)
     location_orientation_type_id = fish_orientation_type_vals %>%
       filter(orientation_type == fish_orientation_type_input) %>%
       pull(location_orientation_type_id)
@@ -353,16 +371,18 @@ observeEvent(input$fish_loc_add, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  old_fish_location_vals = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  old_fish_location_vals = get_fish_locations(pool, waterbody_id(),
+                                              up_rm, lo_rm,
+                                              survey_date,
+                                              species_id) %>%
     filter(!fish_name %in% c("", "no location data")) %>%
     pull(fish_name)
   showModal(
     # Verify required fields have data...none can be blank
     tags$div(id = "fish_location_insert_modal",
-             if ( is.na(new_fish_location_vals$stream_channel_type_id) |
-                  is.na(new_fish_location_vals$location_orientation_type_id) |
-                  is.na(new_fish_location_vals$latitude) |
-                  is.na(new_fish_location_vals$longitude) ) {
+             if ( is.na(new_fish_location_vals$fish_name) |
+                  is.na(new_fish_location_vals$stream_channel_type_id) |
+                  is.na(new_fish_location_vals$location_orientation_type_id) ) {
                modalDialog (
                  size = "m",
                  title = "Warning",
@@ -415,7 +435,7 @@ observeEvent(input$insert_fish_location, {
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   tryCatch({
-    fish_location_insert(fish_location_insert_vals())
+    fish_location_insert(pool, fish_location_insert_vals())
     shinytoastr::toastr_success("New carcass location was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
@@ -426,7 +446,10 @@ observeEvent(input$insert_fish_location, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  post_fish_location_insert_vals = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  post_fish_location_insert_vals = get_fish_locations(pool, waterbody_id(),
+                                                      up_rm, lo_rm,
+                                                      survey_date,
+                                                      species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -443,7 +466,10 @@ observeEvent(input$insert_fish_encounter, {
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   # Update fish location table
-  fish_locs_after_fish_count_insert = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  fish_locs_after_fish_count_insert = get_fish_locations(pool, waterbody_id(),
+                                                         up_rm, lo_rm,
+                                                         survey_date,
+                                                         species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -466,7 +492,7 @@ fish_location_edit = reactive({
   if ( fish_channel_type_input == "" ) {
     stream_channel_type_id = NA
   } else {
-    fish_channel_type_vals = get_fish_channel_type()
+    fish_channel_type_vals = get_fish_channel_type(pool)
     stream_channel_type_id = fish_channel_type_vals %>%
       filter(channel_type == fish_channel_type_input) %>%
       pull(stream_channel_type_id)
@@ -476,7 +502,7 @@ fish_location_edit = reactive({
   if ( fish_orientation_type_input == "" ) {
     location_orientation_type_id = NA
   } else {
-    fish_orientation_type_vals = get_fish_orientation_type()
+    fish_orientation_type_vals = get_fish_orientation_type(pool)
     location_orientation_type_id = fish_orientation_type_vals %>%
       filter(orientation_type == fish_orientation_type_input) %>%
       pull(location_orientation_type_id)
@@ -498,7 +524,7 @@ fish_location_edit = reactive({
 
 dependent_fish_location_surveys = reactive({
   fish_loc_id = selected_fish_location_data()$fish_location_id
-  fish_loc_srv = get_fish_location_surveys(fish_loc_id)
+  fish_loc_srv = get_fish_location_surveys(pool, fish_loc_id)
   return(fish_loc_srv)
 })
 
@@ -597,7 +623,7 @@ observeEvent(input$save_fish_loc_edits, {
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   tryCatch({
-    fish_location_update(fish_location_edit(), selected_fish_location_data())
+    fish_location_update(pool, fish_location_edit(), selected_fish_location_data())
     shinytoastr::toastr_success("Carcass location was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
@@ -609,7 +635,10 @@ observeEvent(input$save_fish_loc_edits, {
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   # Update redd location table
-  post_fish_location_edit_vals = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  post_fish_location_edit_vals = get_fish_locations(pool, waterbody_id(),
+                                                    up_rm, lo_rm,
+                                                    survey_date,
+                                                    species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -626,7 +655,10 @@ observeEvent(input$save_fish_enc_edits, {
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
   # Update redd location table
-  fish_locs_after_fish_count_edit = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  fish_locs_after_fish_count_edit = get_fish_locations(pool, waterbody_id(),
+                                                       up_rm, lo_rm,
+                                                       survey_date,
+                                                       species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -645,7 +677,10 @@ output$fish_location_modal_delete_vals = renderDT({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_location_modal_del_vals = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  fish_location_modal_del_vals = get_fish_locations(pool, waterbody_id(),
+                                                    up_rm, lo_rm,
+                                                    survey_date,
+                                                    species_id) %>%
     filter(fish_location_id == fish_location_modal_del_id) %>%
     select(fish_name, channel_type, orientation_type, latitude,
            longitude, horiz_accuracy, location_description)
@@ -664,7 +699,7 @@ output$fish_location_modal_delete_vals = renderDT({
 # Reactive to hold dependencies
 fish_location_dependencies = reactive({
   fish_location_id = selected_fish_location_data()$fish_location_id
-  fish_loc_dep = get_fish_location_dependencies(fish_location_id)
+  fish_loc_dep = get_fish_location_dependencies(pool, fish_location_id)
   return(fish_loc_dep)
 })
 
@@ -735,7 +770,7 @@ observeEvent(input$delete_fish_location, {
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   tryCatch({
-    fish_location_delete(selected_fish_location_data())
+    fish_location_delete(pool, selected_fish_location_data())
     shinytoastr::toastr_success("Carcass location was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
@@ -746,7 +781,10 @@ observeEvent(input$delete_fish_location, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_locations_after_delete = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  fish_locations_after_delete = get_fish_locations(pool, waterbody_id(),
+                                                   up_rm, lo_rm,
+                                                   survey_date,
+                                                   species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -760,7 +798,10 @@ observeEvent(input$delete_fish_encounter, {
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_locations_after_encounter_delete = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id) %>%
+  fish_locations_after_encounter_delete = get_fish_locations(pool, waterbody_id(),
+                                                             up_rm, lo_rm,
+                                                             survey_date,
+                                                             species_id) %>%
     select(survey_dt, species, fish_name, fish_status, channel_type, orientation_type,
            latitude, longitude, horiz_accuracy, location_description,
            created_dt, created_by, modified_dt, modified_by)

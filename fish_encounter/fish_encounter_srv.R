@@ -11,7 +11,10 @@ current_fish_locations = reactive({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  fish_locs = get_fish_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id)
+  fish_locs = get_fish_locations(pool, waterbody_id(),
+                                 up_rm, lo_rm,
+                                 survey_date,
+                                 species_id)
   return(fish_locs)
 })
 
@@ -24,7 +27,8 @@ output$fish_name_select = renderUI({
 })
 
 output$fish_status_select = renderUI({
-  fish_status_list = get_fish_status()$fish_status
+  req(valid_connection == TRUE)
+  fish_status_list = get_fish_status(pool)$fish_status
   fish_status_list = c("", fish_status_list)
   selectizeInput("fish_status_select", label = "fish_status",
                  choices = fish_status_list, selected = NULL,
@@ -32,7 +36,8 @@ output$fish_status_select = renderUI({
 })
 
 output$sex_select = renderUI({
-  sex_list = get_sex()$sex
+  req(valid_connection == TRUE)
+  sex_list = get_sex(pool)$sex
   sex_list = c("", sex_list)
   selectizeInput("sex_select", label = "fish_sex",
                  choices = sex_list, selected = "Not applicable",
@@ -40,7 +45,8 @@ output$sex_select = renderUI({
 })
 
 output$maturity_select = renderUI({
-  maturity_list = get_maturity()$maturity
+  req(valid_connection == TRUE)
+  maturity_list = get_maturity(pool)$maturity
   maturity_list = c("", maturity_list)
   selectizeInput("maturity_select", label = "maturity",
                  choices = maturity_list, selected = "Not applicable",
@@ -48,7 +54,8 @@ output$maturity_select = renderUI({
 })
 
 output$origin_select = renderUI({
-  origin_list = get_origin()$origin
+  req(valid_connection == TRUE)
+  origin_list = get_origin(pool)$origin
   origin_list = c("", origin_list)
   selectizeInput("origin_select", label = "origin",
                  choices = origin_list, selected = "Unknown",
@@ -56,7 +63,8 @@ output$origin_select = renderUI({
 })
 
 output$cwt_status_select = renderUI({
-  cwt_status_list = get_cwt_status()$cwt_status
+  req(valid_connection == TRUE)
+  cwt_status_list = get_cwt_status(pool)$cwt_status
   cwt_status_list = c("", cwt_status_list)
   selectizeInput("cwt_status_select", label = "cwt_status",
                  choices = cwt_status_list, selected = "Not applicable",
@@ -64,7 +72,8 @@ output$cwt_status_select = renderUI({
 })
 
 output$clip_status_select = renderUI({
-  clip_status_list = get_clip_status()$clip_status
+  req(valid_connection == TRUE)
+  clip_status_list = get_clip_status(pool)$clip_status
   clip_status_list = c("", clip_status_list)
   selectizeInput("clip_status_select", label = "clip_status",
                  choices = clip_status_list, selected = "Not applicable",
@@ -72,7 +81,8 @@ output$clip_status_select = renderUI({
 })
 
 output$fish_behavior_select = renderUI({
-  fish_behavior_list = get_fish_behavior()$fish_behavior
+  req(valid_connection == TRUE)
+  fish_behavior_list = get_fish_behavior(pool)$fish_behavior
   fish_behavior_list = c("", fish_behavior_list)
   selectizeInput("fish_behavior_select", label = "fish_behavior",
                  choices = fish_behavior_list, selected = NULL,
@@ -82,7 +92,7 @@ output$fish_behavior_select = renderUI({
 output$prev_counted_select = renderUI({
   prev_counted_list = c("No", "Yes")
   selectizeInput("prev_counted_select", label = "prev_counted",
-                 choices = prev_counted_list, selected = "Yes",
+                 choices = prev_counted_list, selected = "No",
                  width = "90px")
 })
 
@@ -99,7 +109,7 @@ output$fish_encounters = renderDT({
   fish_encounter_title = glue("{selected_survey_event_data()$species} data for {input$stream_select} on ",
                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
-  fish_encounter_data = get_fish_encounter(selected_survey_event_data()$survey_event_id) %>%
+  fish_encounter_data = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin, cwt_status,
            clip_status, fish_behavior, prev_counted, created_dt, created_by, modified_dt,
            modified_by)
@@ -140,7 +150,7 @@ selected_fish_encounter_data = reactive({
   req(input$survey_events_rows_selected)
   req(input$fish_encounters_rows_selected)
   req(!is.na(selected_survey_event_data()$survey_event_id))
-  fish_encounter_data = get_fish_encounter(selected_survey_event_data()$survey_event_id)
+  fish_encounter_data = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id)
   fish_encounter_row = input$fish_encounters_rows_selected
   selected_fish_encounter = tibble(fish_encounter_id = fish_encounter_data$fish_encounter_id[fish_encounter_row],
                                    fish_encounter_time = fish_encounter_data$fish_encounter_time[fish_encounter_row],
@@ -204,7 +214,7 @@ fish_encounter_create = reactive({
   if ( fish_status_input == "" ) {
     fish_status_id = NA
   } else {
-    fish_status_vals = get_fish_status()
+    fish_status_vals = get_fish_status(pool)
     fish_status_id = fish_status_vals %>%
       filter(fish_status == fish_status_input) %>%
       pull(fish_status_id)
@@ -225,7 +235,7 @@ fish_encounter_create = reactive({
   if ( sex_input == "" ) {
     sex_id = NA
   } else {
-    sex_vals = get_sex()
+    sex_vals = get_sex(pool)
     sex_id = sex_vals %>%
       filter(sex == sex_input) %>%
       pull(sex_id)
@@ -235,7 +245,7 @@ fish_encounter_create = reactive({
   if ( maturity_input == "" ) {
     maturity_id = NA
   } else {
-    maturity_vals = get_maturity()
+    maturity_vals = get_maturity(pool)
     maturity_id = maturity_vals %>%
       filter(maturity == maturity_input) %>%
       pull(maturity_id)
@@ -245,7 +255,7 @@ fish_encounter_create = reactive({
   if ( origin_input == "" ) {
     origin_id = NA
   } else {
-    origin_vals = get_origin()
+    origin_vals = get_origin(pool)
     origin_id = origin_vals %>%
       filter(origin == origin_input) %>%
       pull(origin_id)
@@ -255,7 +265,7 @@ fish_encounter_create = reactive({
   if ( cwt_status_input == "" ) {
     cwt_status_id = NA
   } else {
-    cwt_status_vals = get_cwt_status()
+    cwt_status_vals = get_cwt_status(pool)
     cwt_detection_status_id = cwt_status_vals %>%
       filter(cwt_status == cwt_status_input) %>%
       pull(cwt_detection_status_id)
@@ -265,7 +275,7 @@ fish_encounter_create = reactive({
   if ( clip_status_input == "" ) {
     clip_status_id = NA
   } else {
-    clip_status_vals = get_clip_status()
+    clip_status_vals = get_clip_status(pool)
     adipose_clip_status_id = clip_status_vals %>%
       filter(clip_status == clip_status_input) %>%
       pull(adipose_clip_status_id)
@@ -275,7 +285,7 @@ fish_encounter_create = reactive({
   if ( fish_behavior_input == "" ) {
     fish_behavior_id = NA
   } else {
-    fish_behavior_vals = get_fish_behavior()
+    fish_behavior_vals = get_fish_behavior(pool)
     fish_behavior_type_id = fish_behavior_vals %>%
       filter(fish_behavior == fish_behavior_input) %>%
       pull(fish_behavior_type_id)
@@ -383,13 +393,13 @@ fish_encounter_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_fish_encounter, {
   tryCatch({
-    fish_encounter_insert(fish_encounter_insert_vals())
+    fish_encounter_insert(pool, fish_encounter_insert_vals())
     shinytoastr::toastr_success("Fish count data was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_fish_encounter_insert_vals = get_fish_encounter(selected_survey_event_data()$survey_event_id) %>%
+  post_fish_encounter_insert_vals = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin,
            cwt_status, clip_status, fish_behavior, prev_counted, created_dt,
            created_by, modified_dt, modified_by)
@@ -417,7 +427,7 @@ fish_encounter_edit = reactive({
   if ( fish_status_input == "" ) {
     fish_status_id = NA
   } else {
-    fish_status_vals = get_fish_status()
+    fish_status_vals = get_fish_status(pool)
     fish_status_id = fish_status_vals %>%
       filter(fish_status == fish_status_input) %>%
       pull(fish_status_id)
@@ -438,7 +448,7 @@ fish_encounter_edit = reactive({
   if ( sex_input == "" ) {
     sex_id = NA
   } else {
-    sex_vals = get_sex()
+    sex_vals = get_sex(pool)
     sex_id = sex_vals %>%
       filter(sex == sex_input) %>%
       pull(sex_id)
@@ -448,7 +458,7 @@ fish_encounter_edit = reactive({
   if ( maturity_input == "" ) {
     maturity_id = NA
   } else {
-    maturity_vals = get_maturity()
+    maturity_vals = get_maturity(pool)
     maturity_id = maturity_vals %>%
       filter(maturity == maturity_input) %>%
       pull(maturity_id)
@@ -458,7 +468,7 @@ fish_encounter_edit = reactive({
   if ( origin_input == "" ) {
     origin_id = NA
   } else {
-    origin_vals = get_origin()
+    origin_vals = get_origin(pool)
     origin_id = origin_vals %>%
       filter(origin == origin_input) %>%
       pull(origin_id)
@@ -468,7 +478,7 @@ fish_encounter_edit = reactive({
   if ( cwt_status_input == "" ) {
     cwt_status_id = NA
   } else {
-    cwt_status_vals = get_cwt_status()
+    cwt_status_vals = get_cwt_status(pool)
     cwt_detection_status_id = cwt_status_vals %>%
       filter(cwt_status == cwt_status_input) %>%
       pull(cwt_detection_status_id)
@@ -478,7 +488,7 @@ fish_encounter_edit = reactive({
   if ( clip_status_input == "" ) {
     clip_status_id = NA
   } else {
-    clip_status_vals = get_clip_status()
+    clip_status_vals = get_clip_status(pool)
     adipose_clip_status_id = clip_status_vals %>%
       filter(clip_status == clip_status_input) %>%
       pull(adipose_clip_status_id)
@@ -488,7 +498,7 @@ fish_encounter_edit = reactive({
   if ( fish_behavior_input == "" ) {
     fish_behavior_id = NA
   } else {
-    fish_behavior_vals = get_fish_behavior()
+    fish_behavior_vals = get_fish_behavior(pool)
     fish_behavior_type_id = fish_behavior_vals %>%
       filter(fish_behavior == fish_behavior_input) %>%
       pull(fish_behavior_type_id)
@@ -592,13 +602,13 @@ observeEvent(input$fish_enc_edit, {
 # Update DB and reload DT
 observeEvent(input$save_fish_enc_edits, {
   tryCatch({
-    fish_encounter_update(fish_encounter_edit())
+    fish_encounter_update(pool, fish_encounter_edit())
     shinytoastr::toastr_success("Fish count data was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_fish_encounter_edit_vals = get_fish_encounter(selected_survey_event_data()$survey_event_id) %>%
+  post_fish_encounter_edit_vals = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin,
            cwt_status, clip_status, fish_behavior, prev_counted, created_dt,
            created_by, modified_dt, modified_by)
@@ -607,7 +617,7 @@ observeEvent(input$save_fish_enc_edits, {
 
 # Update fish encounter table if something in fish location changed
 observeEvent(input$save_fish_loc_edits, {
-fish_counts_after_location_edit = get_fish_encounter(selected_survey_event_data()$survey_event_id) %>%
+fish_counts_after_location_edit = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
   select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin,
          cwt_status, clip_status, fish_behavior, prev_counted, created_dt,
          created_by, modified_dt, modified_by)
@@ -621,7 +631,7 @@ replaceData(fish_encounter_dt_proxy, fish_counts_after_location_edit)
 # Generate values to show in modal
 output$fish_encounter_modal_delete_vals = renderDT({
   fish_encounter_modal_del_id = selected_fish_encounter_data()$fish_encounter_id
-  fish_encounter_modal_del_vals = get_fish_encounter(selected_survey_event_data()$survey_event_id) %>%
+  fish_encounter_modal_del_vals = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     filter(fish_encounter_id == fish_encounter_modal_del_id) %>%
     select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin, cwt_status,
            clip_status, fish_behavior, prev_counted)
@@ -639,7 +649,7 @@ output$fish_encounter_modal_delete_vals = renderDT({
 
 observeEvent(input$fish_enc_delete, {
   fish_encounter_id = selected_fish_encounter_data()$fish_encounter_id
-  fish_encounter_dependencies = get_fish_encounter_dependencies(fish_encounter_id)
+  fish_encounter_dependencies = get_fish_encounter_dependencies(pool, fish_encounter_id)
   table_names = paste0(names(fish_encounter_dependencies), collapse = ", ")
   showModal(
     tags$div(id = "fish_encounter_delete_modal",
@@ -671,13 +681,13 @@ observeEvent(input$fish_enc_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_fish_encounter, {
   tryCatch({
-    fish_encounter_delete(selected_fish_encounter_data())
+    fish_encounter_delete(pool, selected_fish_encounter_data())
     shinytoastr::toastr_success("Fish count data was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  fish_encounters_after_delete = get_fish_encounter(selected_survey_event_data()$survey_event_id) %>%
+  fish_encounters_after_delete = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin,
            cwt_status, clip_status, fish_behavior, prev_counted, created_dt,
            created_by, modified_dt, modified_by)

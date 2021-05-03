@@ -1,13 +1,15 @@
 
 # Server side inputs
 output$survey_method_select = renderUI({
-  survey_method_list = get_survey_method()$survey_method
+  req(valid_connection == TRUE)
+  survey_method_list = get_survey_method(pool)$survey_method
   selectizeInput("survey_method_select", label = "survey_method",
                  choices = survey_method_list, selected = "Foot",
                  width = "115px")
 })
 
 output$upper_rm_select = renderUI({
+  req(valid_connection == TRUE)
   rm_list = rm_list()$rm_label
   selectizeInput("upper_rm_select", label = "upper_rm",
                  choices = rm_list, selected = rm_list[[1]],
@@ -15,6 +17,7 @@ output$upper_rm_select = renderUI({
 })
 
 output$lower_rm_select = renderUI({
+  req(valid_connection == TRUE)
   rm_list = rm_list()$rm_label
   selectizeInput("lower_rm_select", label = "lower_rm",
                  choices = rm_list, selected = rm_list[[1]],
@@ -22,7 +25,8 @@ output$lower_rm_select = renderUI({
 })
 
 output$data_source_select = renderUI({
-  data_source_list = get_data_source()$data_source
+  req(valid_connection == TRUE)
+  data_source_list = get_data_source(pool)$data_source
   selectizeInput("data_source_select", label = "data_source",
                  choices = data_source_list,
                  selected = "WDFW: Washington Department of Fish and Wildlife",
@@ -30,28 +34,32 @@ output$data_source_select = renderUI({
 })
 
 output$data_source_unit_select = renderUI({
-  data_source_unit_list = get_data_source_unit()$data_source_unit
+  req(valid_connection == TRUE)
+  data_source_unit_list = get_data_source_unit(pool)$data_source_unit
   selectizeInput("data_source_unit_select", label = "data_source_unit",
                  choices = data_source_unit_list, selected = "Not applicable",
                  width = "225px")
 })
 
 output$data_review_select = renderUI({
-  data_review_list = get_data_review()$data_review
+  req(valid_connection == TRUE)
+  data_review_list = get_data_review(pool)$data_review
   selectizeInput("data_review_select", label = "data_review",
                  choices = data_review_list, selected = "Preliminary",
                  width = "250px")
 })
 
 output$completion_select = renderUI({
-  completion_list = get_completion_status()$completion
+  req(valid_connection == TRUE)
+  completion_list = get_completion_status(pool)$completion
   selectizeInput("completion_select", label = "completed?",
                  choices = completion_list, selected = "Completed survey",
                  width = "150px")
 })
 
 output$incomplete_type_select = renderUI({
-  incomplete_type_list = get_incomplete_type()$incomplete_type
+  req(valid_connection == TRUE)
+  incomplete_type_list = get_incomplete_type(pool)$incomplete_type
   selectizeInput("incomplete_type_select", label = "why not completed?",
                  choices = incomplete_type_list, selected = "Not applicable",
                  width = "225px")
@@ -59,10 +67,15 @@ output$incomplete_type_select = renderUI({
 
 # Primary DT datatable for database
 output$surveys = renderDT({
-  req(input$year_select)
+  req(valid_connection == TRUE)
   req(input$stream_select)
-  survey_title = glue("Surveys for {input$stream_select} in {year_vals()}")
-  survey_data = get_surveys(waterbody_id(), year_vals()) %>%
+  req(input$when_date_range)
+  start_date = input$when_date_range[1]
+  start_dt = format(start_date, "%m/%d/%Y")
+  end_date = input$when_date_range[2]
+  end_dt = format(end_date, "%m/%d/%Y")
+  survey_title = glue("Surveys for {input$stream_select} from {start_dt} to {end_dt}")
+  survey_data = get_surveys(pool, waterbody_id(), start_date, end_date) %>%
     mutate(start_time = start_time_dt, end_time = end_time_dt) %>%
     select(survey_dt = survey_date_dt, survey_method, up_rm,
            lo_rm, start_time, end_time, observer, submitter,
@@ -104,8 +117,9 @@ observeEvent(input$tabs, {
 # Create reactive to collect input values for update and delete actions
 selected_survey_data = reactive({
   req(input$surveys_rows_selected)
-  # selected_survey = NULL
-  surveys = get_surveys(waterbody_id(), year_vals())
+  start_date = input$when_date_range[1]
+  end_date = input$when_date_range[2]
+  surveys = get_surveys(pool, waterbody_id(), start_date, end_date)
   survey_row = input$surveys_rows_selected
   selected_survey = tibble(survey_id = surveys$survey_id[survey_row],
                            survey_date = surveys$survey_date[survey_row],
@@ -158,6 +172,7 @@ observeEvent(input$surveys_rows_selected, {
 
 # Create reactive to collect input values for insert actions
 survey_create = reactive({
+  req(valid_connection == TRUE)
   # Survey date
   survey_date_input = input$survey_date_input
   # Data source
@@ -165,7 +180,7 @@ survey_create = reactive({
   if (data_source_input == "" ) {
     data_source_id = NA
   } else {
-    data_source_vals = get_data_source()
+    data_source_vals = get_data_source(pool)
     data_source_id = data_source_vals %>%
       filter(data_source == data_source_input) %>%
       pull(data_source_id)
@@ -176,7 +191,7 @@ survey_create = reactive({
   if (data_source_unit_input == "" ) {
     data_source_unit_id = NA
   } else {
-    data_source_unit_vals = get_data_source_unit()
+    data_source_unit_vals = get_data_source_unit(pool)
     data_source_unit_id = data_source_unit_vals %>%
       filter(data_source_unit == data_source_unit_input) %>%
       pull(data_source_unit_id)
@@ -186,7 +201,7 @@ survey_create = reactive({
   if (survey_method_input == "" ) {
     survey_method_id = NA
   } else {
-    survey_method_vals = get_survey_method()
+    survey_method_vals = get_survey_method(pool)
     survey_method_id = survey_method_vals %>%
       filter(survey_method == survey_method_input) %>%
       pull(survey_method_id)
@@ -196,7 +211,7 @@ survey_create = reactive({
   if ( data_review_input == "" ) {
     data_review_status_id = NA
   } else {
-    data_review_vals = get_data_review()
+    data_review_vals = get_data_review(pool)
     data_review_status_id = data_review_vals %>%
       filter(data_review == data_review_input) %>%
       pull(data_review_status_id)
@@ -231,7 +246,7 @@ survey_create = reactive({
   if (completion_input == "" ) {
     survey_completion_status_id = NA
   } else {
-    completion_vals = get_completion_status()
+    completion_vals = get_completion_status(pool)
     survey_completion_status_id = completion_vals %>%
       filter(completion == completion_input) %>%
       pull(survey_completion_status_id)
@@ -241,7 +256,7 @@ survey_create = reactive({
   if (incomplete_type_input == "" ) {
     incomplete_survey_type_id = NA
   } else {
-    incomplete_type_vals = get_incomplete_type()
+    incomplete_type_vals = get_incomplete_type(pool)
     incomplete_survey_type_id = incomplete_type_vals %>%
       filter(incomplete_type == incomplete_type_input) %>%
       pull(incomplete_survey_type_id)
@@ -298,7 +313,9 @@ output$survey_modal_insert_vals = renderDT({
 
 observeEvent(input$survey_add, {
   new_survey_vals = survey_create()
-  existing_survey_vals = get_surveys(waterbody_id(), year_vals()) %>%
+  start_date = input$when_date_range[1]
+  end_date = input$when_date_range[2]
+  existing_survey_vals = get_surveys(pool, waterbody_id(), start_date, end_date) %>%
     mutate(up_rm = as.character(up_rm)) %>%
     mutate(lo_rm = as.character(lo_rm)) %>%
     select(survey_dt = survey_date, survey_method, up_rm, lo_rm,
@@ -384,14 +401,17 @@ survey_insert_vals = reactive({
 
 # Update DB and reload DT
 observeEvent(input$insert_survey, {
+  req(valid_connection == TRUE)
   tryCatch({
-    survey_insert(survey_insert_vals())
+    survey_insert(pool, survey_insert_vals())
     shinytoastr::toastr_success("New survey was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_insert_vals = get_surveys(waterbody_id(), year_vals()) %>%
+  start_date = input$when_date_range[1]
+  end_date = input$when_date_range[2]
+  post_insert_vals = get_surveys(pool, waterbody_id(), start_date, end_date) %>%
     mutate(start_time = start_time_dt, end_time = end_time_dt) %>%
     select(survey_dt = survey_date_dt, survey_method, up_rm,
            lo_rm, start_time, end_time, observer, submitter,
@@ -407,8 +427,10 @@ observeEvent(input$insert_survey, {
 
 # Create reactive to collect input values for edit actions
 survey_edit = reactive({
+  req(valid_connection == TRUE)
+  req(input$surveys_rows_selected)
   # Data source
-  data_source_vals = get_data_source()
+  data_source_vals = get_data_source(pool)
   data_source_input = input$data_source_select
   data_source_id = data_source_vals %>%
     filter(data_source == data_source_input) %>%
@@ -419,19 +441,19 @@ survey_edit = reactive({
   if (data_source_unit_input == "" ) {
     data_source_unit_id = NA
   } else {
-    data_source_unit_vals = get_data_source_unit()
+    data_source_unit_vals = get_data_source_unit(pool)
     data_source_unit_id = data_source_unit_vals %>%
       filter(data_source_unit == data_source_unit_input) %>%
       pull(data_source_unit_id)
   }
   # Survey method
-  survey_method_vals = get_survey_method()
+  survey_method_vals = get_survey_method(pool)
   survey_method_input = input$survey_method_select
   survey_method_id = survey_method_vals %>%
     filter(survey_method == survey_method_input) %>%
     pull(survey_method_id)
   # Data review
-  data_review_vals = get_data_review()
+  data_review_vals = get_data_review(pool)
   data_review_input = input$data_review_select
   data_review_status_id = data_review_vals %>%
     filter(data_review == data_review_input) %>%
@@ -447,7 +469,7 @@ survey_edit = reactive({
     filter(rm_label == lo_rm_input) %>%
     pull(location_id)
   # Survey completion
-  completion_vals = get_completion_status()
+  completion_vals = get_completion_status(pool)
   completion_input = input$completion_select
   survey_completion_status_id = completion_vals %>%
     filter(completion == completion_input) %>%
@@ -457,7 +479,7 @@ survey_edit = reactive({
   if (incomplete_type_input == "" ) {
     incomplete_survey_type_id = NA
   } else {
-    incomplete_type_vals = get_incomplete_type()
+    incomplete_type_vals = get_incomplete_type(pool)
     incomplete_survey_type_id = incomplete_type_vals %>%
       filter(incomplete_type == incomplete_type_input) %>%
       pull(incomplete_survey_type_id)
@@ -575,14 +597,18 @@ observeEvent(input$survey_edit, {
 
 # Update DB and reload DT
 observeEvent(input$save_survey_edits, {
+  req(valid_connection == TRUE)
+  req(input$surveys_rows_selected)
   tryCatch({
-    survey_update(survey_edit())
+    survey_update(pool, survey_edit())
     shinytoastr::toastr_success("Survey was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_edit_vals = get_surveys(waterbody_id(), year_vals()) %>%
+  start_date = input$when_date_range[1]
+  end_date = input$when_date_range[2]
+  post_edit_vals = get_surveys(pool, waterbody_id(), start_date, end_date) %>%
     mutate(start_time = start_time_dt, end_time = end_time_dt) %>%
     select(survey_dt = survey_date_dt, survey_method, up_rm,
            lo_rm, start_time, end_time, observer, submitter,
@@ -598,8 +624,12 @@ observeEvent(input$save_survey_edits, {
 
 # Generate values to show in modal
 output$survey_modal_delete_vals = renderDT({
+  req(valid_connection == TRUE)
+  req(input$surveys_rows_selected)
+  start_date = input$when_date_range[1]
+  end_date = input$when_date_range[2]
   survey_modal_del_id = selected_survey_data()$survey_id
-  survey_modal_del_vals = get_surveys(waterbody_id(), year_vals()) %>%
+  survey_modal_del_vals = get_surveys(pool, waterbody_id(), start_date, end_date) %>%
     filter(survey_id == survey_modal_del_id) %>%
     mutate(start_time = start_time_dt, end_time = end_time_dt) %>%
     select(survey_dt = survey_date_dt, survey_method, up_rm,
@@ -621,7 +651,7 @@ output$survey_modal_delete_vals = renderDT({
 
 observeEvent(input$survey_delete, {
   survey_id = selected_survey_data()$survey_id
-  survey_dependencies = get_survey_dependencies(survey_id)
+  survey_dependencies = get_survey_dependencies(pool, survey_id)
   table_names = paste0(names(survey_dependencies), collapse = ", ")
   showModal(
     tags$div(id = "survey_delete_modal",
@@ -660,14 +690,18 @@ observeEvent(input$survey_delete, {
 
 # Update DB and reload DT
 observeEvent(input$delete_survey, {
+  req(valid_connection == TRUE)
+  req(input$surveys_rows_selected)
   tryCatch({
-    survey_delete(selected_survey_data())
+    survey_delete(pool, selected_survey_data())
     shinytoastr::toastr_success("Survey was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  surveys_after_delete = get_surveys(waterbody_id(), year_vals()) %>%
+  start_date = input$when_date_range[1]
+  end_date = input$when_date_range[2]
+  surveys_after_delete = get_surveys(pool, waterbody_id(), start_date, end_date) %>%
     mutate(start_time = start_time_dt, end_time = end_time_dt) %>%
     select(survey_dt = survey_date_dt, survey_method, up_rm,
            lo_rm, start_time, end_time, observer, submitter,

@@ -1,6 +1,6 @@
 
 # Main redd_encounter query
-get_redd_encounter = function(survey_event_id) {
+get_redd_encounter = function(pool, survey_event_id) {
   qry = glue("select rd.redd_encounter_id, rd.redd_encounter_datetime as redd_encounter_time, ",
              "rd.redd_count, rs.redd_status_short_description as redd_status, ",
              "rd.redd_location_id, loc.location_name as redd_name, rd.comment_text as redd_comment, ",
@@ -34,7 +34,7 @@ get_redd_encounter = function(survey_event_id) {
 #==========================================================================
 
 # Redd status
-get_redd_status = function() {
+get_redd_status = function(pool) {
   qry = glue("select redd_status_id, redd_status_short_description as redd_status ",
              "from spawning_ground.redd_status_lut ",
              "where obsolete_datetime is null")
@@ -53,7 +53,7 @@ get_redd_status = function() {
 #========================================================
 
 # Define the insert callback
-redd_encounter_insert = function(new_redd_encounter_values) {
+redd_encounter_insert = function(pool, new_redd_encounter_values) {
   new_insert_values = new_redd_encounter_values
   # Pull out data
   survey_event_id = new_insert_values$survey_event_id
@@ -90,7 +90,7 @@ redd_encounter_insert = function(new_redd_encounter_values) {
 #========================================================
 
 # Define update callback
-redd_encounter_update = function(redd_encounter_edit_values) {
+redd_encounter_update = function(pool, redd_encounter_edit_values) {
   edit_values = redd_encounter_edit_values
   # Pull out data
   redd_encounter_id = edit_values$redd_encounter_id
@@ -128,7 +128,7 @@ redd_encounter_update = function(redd_encounter_edit_values) {
 #========================================================
 
 # Identify fish_encounter dependencies prior to delete
-get_redd_encounter_dependencies = function(redd_encounter_id) {
+get_redd_encounter_dependencies = function(pool, redd_encounter_id) {
   qry = glue("select ",
              "count(ir.individual_redd_id) as individual_redd, ",
              "count(rc.redd_confidence_id) as redd_confidence, ",
@@ -152,7 +152,7 @@ get_redd_encounter_dependencies = function(redd_encounter_id) {
 #========================================================
 
 # Define delete callback
-redd_encounter_delete = function(delete_values) {
+redd_encounter_delete = function(pool, delete_values) {
   redd_encounter_id = delete_values$redd_encounter_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

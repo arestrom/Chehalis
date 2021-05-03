@@ -1,5 +1,5 @@
 
-get_wrias = function() {
+get_wrias = function(pool) {
   qry = glue("select distinct wr.wria_code || ' ' || wr.wria_description as wria_name ",
              "from spawning_ground.wria_lut as wr ",
              "where wr.wria_code in ('22', '23') ",
@@ -11,7 +11,7 @@ get_wrias = function() {
   return(wria_list)
 }
 
-get_streams = function(chosen_wria) {
+get_streams = function(pool, chosen_wria) {
   qry = glue("select distinct wb.waterbody_id, wb.waterbody_name as stream_name, ",
              "wb.waterbody_name, wb.latitude_longitude_id as llid, ",
              "wb.stream_catalog_code as cat_code, wr.wria_id, st.stream_id, ",
@@ -27,23 +27,23 @@ get_streams = function(chosen_wria) {
   return(streams_st)
 }
 
-get_data_years = function(waterbody_id) {
-  qry = glue("select distinct date_part('year', s.survey_datetime) as data_year ",
+get_survey_dates = function(pool, waterbody_id) {
+  qry = glue("select distinct date(s.survey_datetime) as survey_date ",
              "from spawning_ground.survey as s ",
              "inner join spawning_ground.location as up_loc on s.upper_end_point_id = up_loc.location_id ",
              "inner join spawning_ground.location as lo_loc on s.lower_end_point_id = lo_loc.location_id ",
              "where up_loc.waterbody_id = '{waterbody_id}' ",
              "or lo_loc.waterbody_id = '{waterbody_id}' ",
-             "order by data_year desc")
+             "order by survey_date desc")
   con = poolCheckout(pool)
-  year_list = DBI::dbGetQuery(con, qry) %>%
-    mutate(data_year = as.character(data_year)) %>%
-    pull(data_year)
+  date_list = DBI::dbGetQuery(con, qry) %>%
+    mutate(survey_date = format(survey_date)) %>%
+    pull(survey_date)
   poolReturn(con)
-  return(year_list)
+  return(date_list)
 }
 
-get_end_points = function(waterbody_id) {
+get_end_points = function(pool, waterbody_id) {
   qry = glue("select distinct loc.location_id, loc.river_mile_measure as river_mile, ",
              "loc.location_description as rm_desc ",
              "from spawning_ground.location as loc ",
@@ -65,7 +65,7 @@ get_end_points = function(waterbody_id) {
 # Get centroid or bounds of waterbody to use in interactive maps
 #==========================================================================
 
-get_wria_centroid = function(chosen_wria) {
+get_wria_centroid = function(pool, chosen_wria) {
   qry = glue("select distinct wria_code || ' ' || wria_description as wria_name, ",
              "ST_Y(ST_Transform(ST_Centroid(geom), 4326)) as lat, ",
              "ST_X(ST_Transform(ST_Centroid(geom), 4326)) as lon ",
@@ -77,7 +77,7 @@ get_wria_centroid = function(chosen_wria) {
   return(wria_centroid)
 }
 
-get_stream_centroid = function(waterbody_id) {
+get_stream_centroid = function(pool, waterbody_id) {
   qry = glue("select DISTINCT waterbody_id, ",
              "ST_X(ST_Transform(ST_Centroid(geom), 4326)) as center_lon, ",
              "ST_Y(ST_Transform(ST_Centroid(geom), 4326)) as center_lat ",
@@ -90,7 +90,7 @@ get_stream_centroid = function(waterbody_id) {
 }
 
 # Stream bounds query
-get_stream_bounds = function(waterbody_id) {
+get_stream_bounds = function(pool, waterbody_id) {
   qry = glue("select DISTINCT st.waterbody_id, ",
              "st.geom as geometry ",
              "from spawning_ground.stream as st ",

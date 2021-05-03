@@ -1,5 +1,5 @@
 # Function to get header data...use single-select for year
-get_surveys = function(waterbody_id, survey_year) {
+get_surveys = function(pool, waterbody_id, start_date, end_date) {
   qry = glue("select s.survey_id, s.survey_datetime as survey_date, ",
              "ds.data_source_code, ",
              "data_source_code || ': ' || data_source_name as data_source, ",
@@ -28,7 +28,8 @@ get_surveys = function(waterbody_id, survey_year) {
              "inner join spawning_ground.location as locl on s.lower_end_point_id = locl.location_id ",
              "left join spawning_ground.survey_completion_status_lut as sct on s.survey_completion_status_id = sct.survey_completion_status_id ",
              "inner join spawning_ground.incomplete_survey_type_lut as ics on s.incomplete_survey_type_id = ics.incomplete_survey_type_id ",
-             "where date_part('year', survey_datetime) in ({survey_year}) ",
+             "where date(s.survey_datetime::timestamp at time zone 'America/Los_Angeles') >= '{start_date}' ",
+             "and date(s.survey_datetime::timestamp at time zone 'America/Los_Angeles') <= '{end_date}' ",
              "and (locu.waterbody_id = '{waterbody_id}' or locl.waterbody_id = '{waterbody_id}')")
   con = poolCheckout(pool)
   surveys = DBI::dbGetQuery(con, qry)
@@ -59,7 +60,7 @@ get_surveys = function(waterbody_id, survey_year) {
 #==========================================================================
 
 # Data source
-get_data_source = function() {
+get_data_source = function(pool) {
   qry = glue("select data_source_id, data_source_code || ': ' || data_source_name as data_source ",
              "from spawning_ground.data_source_lut ",
              "where obsolete_datetime is null")
@@ -72,7 +73,7 @@ get_data_source = function() {
 }
 
 # Data source unit
-get_data_source_unit = function() {
+get_data_source_unit = function(pool) {
   qry = glue("select data_source_unit_id, data_source_unit_name as data_source_unit ",
              "from spawning_ground.data_source_unit_lut ",
              "where obsolete_datetime is null")
@@ -85,7 +86,7 @@ get_data_source_unit = function() {
 }
 
 # Survey method
-get_survey_method = function() {
+get_survey_method = function(pool) {
   qry = glue("select survey_method_id, survey_method_code as survey_method ",
              "from spawning_ground.survey_method_lut ",
              "where obsolete_datetime is null")
@@ -98,7 +99,7 @@ get_survey_method = function() {
 }
 
 # Data review
-get_data_review = function() {
+get_data_review = function(pool) {
   qry = glue("select data_review_status_id, data_review_status_description as data_review ",
              "from spawning_ground.data_review_status_lut ",
              "where obsolete_datetime is null")
@@ -111,7 +112,7 @@ get_data_review = function() {
 }
 
 # Completion status
-get_completion_status = function() {
+get_completion_status = function(pool) {
   qry = glue("select survey_completion_status_id, completion_status_description as completion ",
              "from spawning_ground.survey_completion_status_lut ",
              "where obsolete_datetime is null")
@@ -124,7 +125,7 @@ get_completion_status = function() {
 }
 
 # Incomplete type
-get_incomplete_type = function() {
+get_incomplete_type = function(pool) {
   qry = glue("select incomplete_survey_type_id, incomplete_survey_description as incomplete_type ",
              "from spawning_ground.incomplete_survey_type_lut ",
              "where obsolete_datetime is null")
@@ -161,7 +162,7 @@ dup_survey = function(new_survey_vals, existing_survey_vals) {
 #========================================================
 
 # Define the insert callback
-survey_insert = function(new_values) {
+survey_insert = function(pool, new_values) {
   # Pull out data
   survey_datetime = new_values$survey_dt
   data_source_id = new_values$data_source_id
@@ -216,7 +217,7 @@ survey_insert = function(new_values) {
 #========================================================
 
 # Define update callback
-survey_update = function(edit_values) {
+survey_update = function(pool, edit_values) {
   # Pull out data
   survey_datetime = edit_values$survey_datetime
   data_source_id = edit_values$data_source_id
@@ -272,7 +273,7 @@ survey_update = function(edit_values) {
 #========================================================
 
 # Identify survey dependencies prior to delete....do the same for survey_event
-get_survey_dependencies = function(survey_id) {
+get_survey_dependencies = function(pool, survey_id) {
   qry = glue("select count(fb.fish_passage_feature_id) as fish_passage_feature, ",
              "count(fc.fish_capture_id) as fish_capture, ",
              "count(fs.fish_species_presence_id) as fish_species_presence, ",
@@ -307,7 +308,7 @@ get_survey_dependencies = function(survey_id) {
 #========================================================
 
 # Define delete callback
-survey_delete = function(delete_values) {
+survey_delete = function(pool, delete_values) {
   survey_id = delete_values$survey_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

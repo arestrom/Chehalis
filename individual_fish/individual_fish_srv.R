@@ -3,7 +3,8 @@
 #========================================================
 
 output$fish_condition_select = renderUI({
-  fish_condition_list = get_fish_condition()$fish_condition
+  req(valid_connection == TRUE)
+  fish_condition_list = get_fish_condition(pool)$fish_condition
   fish_condition_list = c("", fish_condition_list)
   selectizeInput("fish_condition_select", label = "fish_condition",
                  choices = fish_condition_list, selected = "No data",
@@ -11,7 +12,8 @@ output$fish_condition_select = renderUI({
 })
 
 output$fish_trauma_select = renderUI({
-  fish_trauma_list = get_fish_trauma()$fish_trauma
+  req(valid_connection == TRUE)
+  fish_trauma_list = get_fish_trauma(pool)$fish_trauma
   fish_trauma_list = c("", fish_trauma_list)
   selectizeInput("fish_trauma_select", label = "fish_trauma",
                  choices = fish_trauma_list, selected = "No data",
@@ -19,7 +21,8 @@ output$fish_trauma_select = renderUI({
 })
 
 output$gill_condition_select = renderUI({
-  gill_condition_list = get_gill_condition()$gill_condition
+  req(valid_connection == TRUE)
+  gill_condition_list = get_gill_condition(pool)$gill_condition
   gill_condition_list = c("", gill_condition_list)
   selectizeInput("gill_condition_select", label = "gill_condition",
                  choices = gill_condition_list, selected = "No data",
@@ -27,7 +30,8 @@ output$gill_condition_select = renderUI({
 })
 
 output$spawn_condition_select = renderUI({
-  spawn_condition_list = get_spawn_condition()$spawn_condition
+  req(valid_connection == TRUE)
+  spawn_condition_list = get_spawn_condition(pool)$spawn_condition
   spawn_condition_list = c("", spawn_condition_list)
   selectizeInput("spawn_condition_select", label = "spawn_condition",
                  choices = spawn_condition_list, selected = "No data",
@@ -35,7 +39,8 @@ output$spawn_condition_select = renderUI({
 })
 
 output$age_code_select = renderUI({
-  age_code_list = get_age_code()$age_code
+  req(valid_connection == TRUE)
+  age_code_list = get_age_code(pool)$age_code
   age_code_list = c("", age_code_list)
   selectizeInput("age_code_select", label = "age_code",
                  choices = age_code_list, selected = "No data",
@@ -43,7 +48,8 @@ output$age_code_select = renderUI({
 })
 
 output$cwt_result_select = renderUI({
-  cwt_result_list = get_cwt_result()$cwt_result
+  req(valid_connection == TRUE)
+  cwt_result_list = get_cwt_result(pool)$cwt_result
   cwt_result_list = c("", cwt_result_list)
   selectizeInput("cwt_result_select", label = "cwt_result",
                  choices = cwt_result_list, selected = "Not applicable",
@@ -64,7 +70,7 @@ output$individual_fishes = renderDT({
   individual_fish_title = glue("{selected_survey_event_data()$species} data for {input$stream_select} on ",
                                "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                                "to {selected_survey_data()$lo_rm}")
-  individual_fish_data = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id) %>%
+  individual_fish_data = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id) %>%
     select(fish_condition, fish_trauma, gill_condition, spawn_condition, fish_sample_num, scale_card_num,
            scale_position_num, age_code, snout_sample_num, cwt_tag_code, cwt_result, genetic_sample_num,
            otolith_sample_num, pct_eggs, eggs_gram, eggs_number, fish_comment, created_dt, created_by,
@@ -101,7 +107,7 @@ selected_individual_fish_data = reactive({
   req(input$fish_encounters_rows_selected)
   req(input$individual_fishes_rows_selected)
   req(!is.na(selected_fish_encounter_data()$fish_encounter_id))
-  individual_fish_data = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id)
+  individual_fish_data = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id)
   individual_fish_row = input$individual_fishes_rows_selected
   selected_individual_fish = tibble(individual_fish_id = individual_fish_data$individual_fish_id[individual_fish_row],
                                     fish_condition = individual_fish_data$fish_condition[individual_fish_row],
@@ -162,7 +168,7 @@ observeEvent(input$individual_fishes_rows_selected, {
 observe({
   req(!is.na(selected_fish_encounter_data()$fish_encounter_id))
   input$insert_individual_fish
-  ind_fish_data = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id)
+  ind_fish_data = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id)
   if (nrow(ind_fish_data) >= 1L) {
     shinyjs::disable("ind_fish_add")
   } else {
@@ -186,7 +192,7 @@ individual_fish_create = reactive({
   if ( fish_condition_input == "" ) {
     fish_condition_type_id = NA
   } else {
-    fish_condition_vals = get_fish_condition()
+    fish_condition_vals = get_fish_condition(pool)
     fish_condition_type_id = fish_condition_vals %>%
       filter(fish_condition == fish_condition_input) %>%
       pull(fish_condition_type_id)
@@ -196,7 +202,7 @@ individual_fish_create = reactive({
   if ( fish_trauma_input == "" ) {
     fish_trauma_type_id = NA
   } else {
-    fish_trauma_vals = get_fish_trauma()
+    fish_trauma_vals = get_fish_trauma(pool)
     fish_trauma_type_id = fish_trauma_vals %>%
       filter(fish_trauma == fish_trauma_input) %>%
       pull(fish_trauma_type_id)
@@ -206,7 +212,7 @@ individual_fish_create = reactive({
   if ( gill_condition_input == "" ) {
     gill_condition_type_id = NA
   } else {
-    gill_condition_vals = get_gill_condition()
+    gill_condition_vals = get_gill_condition(pool)
     gill_condition_type_id = gill_condition_vals %>%
       filter(gill_condition == gill_condition_input) %>%
       pull(gill_condition_type_id)
@@ -216,7 +222,7 @@ individual_fish_create = reactive({
   if ( spawn_condition_input == "" ) {
     spawn_condition_type_id = NA
   } else {
-    spawn_condition_vals = get_spawn_condition()
+    spawn_condition_vals = get_spawn_condition(pool)
     spawn_condition_type_id = spawn_condition_vals %>%
       filter(spawn_condition == spawn_condition_input) %>%
       pull(spawn_condition_type_id)
@@ -226,7 +232,7 @@ individual_fish_create = reactive({
   if ( age_code_input == "" ) {
     age_code_id = NA
   } else {
-    age_code_vals = get_age_code()
+    age_code_vals = get_age_code(pool)
     age_code_id = age_code_vals %>%
       filter(age_code == age_code_input) %>%
       pull(age_code_id)
@@ -236,7 +242,7 @@ individual_fish_create = reactive({
   if ( cwt_result_input == "" ) {
     cwt_result_type_id = NA
   } else {
-    cwt_result_vals = get_cwt_result()
+    cwt_result_vals = get_cwt_result(pool)
     cwt_result_type_id = cwt_result_vals %>%
       filter(cwt_result == cwt_result_input) %>%
       pull(cwt_result_type_id)
@@ -308,7 +314,7 @@ observeEvent(input$ind_fish_add, {
                  footer = NULL
                )
                # Verify fish count is one
-             } else if (!individual_fish_create()$fish_count == 1 ) {
+             } else if ( !individual_fish_create()$fish_count == 1 ) {
                modalDialog (
                  size = "m",
                  title = "Warning",
@@ -347,13 +353,13 @@ individual_fish_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_individual_fish, {
   tryCatch({
-    individual_fish_insert(individual_fish_insert_vals())
+    individual_fish_insert(pool, individual_fish_insert_vals())
     shinytoastr::toastr_success("New sample data was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_individual_fish_insert_vals = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id) %>%
+  post_individual_fish_insert_vals = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id) %>%
     select(fish_condition, fish_trauma, gill_condition, spawn_condition, fish_sample_num, scale_card_num,
            scale_position_num, age_code, snout_sample_num, cwt_tag_code, cwt_result, genetic_sample_num,
            otolith_sample_num, pct_eggs, eggs_gram, eggs_number, fish_comment, created_dt, created_by,
@@ -378,7 +384,7 @@ individual_fish_edit = reactive({
   if ( fish_condition_input == "" ) {
     fish_condition_type_id = NA
   } else {
-    fish_condition_vals = get_fish_condition()
+    fish_condition_vals = get_fish_condition(pool)
     fish_condition_type_id = fish_condition_vals %>%
       filter(fish_condition == fish_condition_input) %>%
       pull(fish_condition_type_id)
@@ -388,7 +394,7 @@ individual_fish_edit = reactive({
   if ( fish_trauma_input == "" ) {
     fish_trauma_type_id = NA
   } else {
-    fish_trauma_vals = get_fish_trauma()
+    fish_trauma_vals = get_fish_trauma(pool)
     fish_trauma_type_id = fish_trauma_vals %>%
       filter(fish_trauma == fish_trauma_input) %>%
       pull(fish_trauma_type_id)
@@ -398,7 +404,7 @@ individual_fish_edit = reactive({
   if ( gill_condition_input == "" ) {
     gill_condition_type_id = NA
   } else {
-    gill_condition_vals = get_gill_condition()
+    gill_condition_vals = get_gill_condition(pool)
     gill_condition_type_id = gill_condition_vals %>%
       filter(gill_condition == gill_condition_input) %>%
       pull(gill_condition_type_id)
@@ -408,7 +414,7 @@ individual_fish_edit = reactive({
   if ( spawn_condition_input == "" ) {
     spawn_condition_type_id = NA
   } else {
-    spawn_condition_vals = get_spawn_condition()
+    spawn_condition_vals = get_spawn_condition(pool)
     spawn_condition_type_id = spawn_condition_vals %>%
       filter(spawn_condition == spawn_condition_input) %>%
       pull(spawn_condition_type_id)
@@ -418,7 +424,7 @@ individual_fish_edit = reactive({
   if ( age_code_input == "" ) {
     age_code_id = NA
   } else {
-    age_code_vals = get_age_code()
+    age_code_vals = get_age_code(pool)
     age_code_id = age_code_vals %>%
       filter(age_code == age_code_input) %>%
       pull(age_code_id)
@@ -428,7 +434,7 @@ individual_fish_edit = reactive({
   if ( cwt_result_input == "" ) {
     cwt_result_type_id = NA
   } else {
-    cwt_result_vals = get_cwt_result()
+    cwt_result_vals = get_cwt_result(pool)
     cwt_result_type_id = cwt_result_vals %>%
       filter(cwt_result == cwt_result_input) %>%
       pull(cwt_result_type_id)
@@ -546,13 +552,13 @@ observeEvent(input$ind_fish_edit, {
 # Update DB and reload DT
 observeEvent(input$save_ind_fish_edits, {
   tryCatch({
-    individual_fish_update(individual_fish_edit())
+    individual_fish_update(pool, individual_fish_edit())
     shinytoastr::toastr_success("Sample data was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_individual_fish_edit_vals = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id) %>%
+  post_individual_fish_edit_vals = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id) %>%
     select(fish_condition, fish_trauma, gill_condition, spawn_condition, fish_sample_num, scale_card_num,
            scale_position_num, age_code, snout_sample_num, cwt_tag_code, cwt_result, genetic_sample_num,
            otolith_sample_num, pct_eggs, eggs_gram, eggs_number, fish_comment, created_dt, created_by,
@@ -567,7 +573,7 @@ observeEvent(input$save_ind_fish_edits, {
 # Generate values to show in modal
 output$individual_fish_modal_delete_vals = renderDT({
   individual_fish_modal_del_id = selected_individual_fish_data()$individual_fish_id
-  individual_fish_modal_del_vals = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id) %>%
+  individual_fish_modal_del_vals = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id) %>%
     filter(individual_fish_id == individual_fish_modal_del_id) %>%
     select(fish_condition, fish_trauma, gill_condition, spawn_condition, fish_sample_num, scale_card_num,
            scale_position_num, age_code, snout_sample_num, cwt_tag_code, cwt_result, genetic_sample_num,
@@ -586,7 +592,7 @@ output$individual_fish_modal_delete_vals = renderDT({
 
 observeEvent(input$ind_fish_delete, {
   individual_fish_id = selected_individual_fish_data()$individual_fish_id
-  individual_fish_dependencies = get_individual_fish_dependencies(individual_fish_id)
+  individual_fish_dependencies = get_individual_fish_dependencies(pool, individual_fish_id)
   table_names = paste0(names(individual_fish_dependencies), collapse = ", ")
   showModal(
     tags$div(id = "individual_fish_delete_modal",
@@ -618,13 +624,13 @@ observeEvent(input$ind_fish_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_individual_fish, {
   tryCatch({
-    individual_fish_delete(selected_individual_fish_data())
+    individual_fish_delete(pool, selected_individual_fish_data())
     shinytoastr::toastr_success("Sample data was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  individual_fish_after_delete = get_individual_fish(selected_fish_encounter_data()$fish_encounter_id) %>%
+  individual_fish_after_delete = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id) %>%
     select(fish_condition, fish_trauma, gill_condition, spawn_condition, fish_sample_num, scale_card_num,
            scale_position_num, age_code, snout_sample_num, cwt_tag_code, cwt_result, genetic_sample_num,
            otolith_sample_num, pct_eggs, eggs_gram, eggs_number, fish_comment, created_dt, created_by,

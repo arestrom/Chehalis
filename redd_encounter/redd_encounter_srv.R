@@ -3,7 +3,8 @@
 #========================================================
 
 output$redd_status_select = renderUI({
-  redd_status_list = get_redd_status()$redd_status
+  req(valid_connection == TRUE)
+  redd_status_list = get_redd_status(pool)$redd_status
   redd_status_list = c("", redd_status_list)
   selectizeInput("redd_status_select", label = "redd_status",
                  choices = redd_status_list, selected = NULL,
@@ -19,7 +20,10 @@ current_redd_locations = reactive({
   lo_rm = selected_survey_data()$lo_rm
   survey_date = format(as.Date(selected_survey_data()$survey_date))
   species_id = selected_survey_event_data()$species_id
-  redd_locs = get_redd_locations(waterbody_id(), up_rm, lo_rm, survey_date, species_id)
+  redd_locs = get_redd_locations(pool, waterbody_id(),
+                                 up_rm, lo_rm,
+                                 survey_date,
+                                 species_id)
   return(redd_locs)
 })
 
@@ -44,7 +48,8 @@ output$redd_encounters = renderDT({
   redd_encounter_title = glue("{selected_survey_event_data()$species} redd data for {input$stream_select} on ",
                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
-  redd_encounter_data = get_redd_encounter(selected_survey_event_data()$survey_event_id) %>%
+  redd_encounter_data = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
+    mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name)) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment,
            created_dt, created_by, modified_dt, modified_by)
 
@@ -85,7 +90,8 @@ selected_redd_encounter_data = reactive({
   req(input$survey_events_rows_selected)
   req(input$redd_encounters_rows_selected)
   req(!is.na(selected_survey_event_data()$survey_event_id))
-  redd_encounter_data = get_redd_encounter(selected_survey_event_data()$survey_event_id)
+  redd_encounter_data = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
+    mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name))
   redd_encounter_row = input$redd_encounters_rows_selected
   selected_redd_encounter = tibble(redd_encounter_id = redd_encounter_data$redd_encounter_id[redd_encounter_row],
                                    redd_encounter_time = redd_encounter_data$redd_encounter_time[redd_encounter_row],
@@ -138,7 +144,7 @@ redd_encounter_create = reactive({
   if ( redd_status_input == "" ) {
     redd_status_id = NA
   } else {
-    redd_status_vals = get_redd_status()
+    redd_status_vals = get_redd_status(pool)
     redd_status_id = redd_status_vals %>%
       filter(redd_status == redd_status_input) %>%
       pull(redd_status_id)
@@ -236,13 +242,13 @@ redd_encounter_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_redd_encounter, {
   tryCatch({
-    redd_encounter_insert(redd_encounter_insert_vals())
+    redd_encounter_insert(pool, redd_encounter_insert_vals())
     shinytoastr::toastr_success("New redd count data was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_redd_encounter_insert_vals = get_redd_encounter(selected_survey_event_data()$survey_event_id) %>%
+  post_redd_encounter_insert_vals = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_encounter_dt_proxy, post_redd_encounter_insert_vals)
@@ -271,7 +277,7 @@ redd_encounter_edit = reactive({
   if ( redd_status_input == "" ) {
     redd_status_id = NA
   } else {
-    redd_status_vals = get_redd_status()
+    redd_status_vals = get_redd_status(pool)
     redd_status_id = redd_status_vals %>%
       filter(redd_status == redd_status_input) %>%
       pull(redd_status_id)
@@ -334,6 +340,8 @@ observeEvent(input$redd_enc_edit, {
   old_redd_encounter_vals[] = lapply(old_redd_encounter_vals, set_na)
   new_redd_encounter_vals = redd_encounter_edit() %>%
     mutate(redd_count = as.integer(redd_count)) %>%
+    mutate(redd_name = as.character(redd_name)) %>%
+    mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name)) %>%
     mutate(redd_encounter_dt = format(redd_encounter_dt, "%H:%M")) %>%
     select(redd_encounter_dt, redd_status, redd_count,
            redd_name, redd_comment)
@@ -376,13 +384,13 @@ observeEvent(input$redd_enc_edit, {
 # Update DB and reload DT
 observeEvent(input$save_redd_enc_edits, {
   tryCatch({
-    redd_encounter_update(redd_encounter_edit())
+    redd_encounter_update(pool, redd_encounter_edit())
     shinytoastr::toastr_success("Redd count data was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_redd_encounter_edit_vals = get_redd_encounter(selected_survey_event_data()$survey_event_id) %>%
+  post_redd_encounter_edit_vals = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_encounter_dt_proxy, post_redd_encounter_edit_vals)
@@ -391,7 +399,7 @@ observeEvent(input$save_redd_enc_edits, {
 # Reload location DT after deleting encounter
 observeEvent(input$save_redd_loc_edits, {
   species_id = selected_survey_event_data()$species_id
-  redd_counts_after_location_edit = get_redd_encounter(selected_survey_event_data()$survey_event_id) %>%
+  redd_counts_after_location_edit = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_encounter_dt_proxy, redd_counts_after_location_edit)
@@ -404,7 +412,7 @@ observeEvent(input$save_redd_loc_edits, {
 # Generate values to show in modal
 output$redd_encounter_modal_delete_vals = renderDT({
   redd_encounter_modal_del_id = selected_redd_encounter_data()$redd_encounter_id
-  redd_encounter_modal_del_vals = get_redd_encounter(selected_survey_event_data()$survey_event_id) %>%
+  redd_encounter_modal_del_vals = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     filter(redd_encounter_id == redd_encounter_modal_del_id) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment)
   # Generate table
@@ -422,7 +430,7 @@ output$redd_encounter_modal_delete_vals = renderDT({
 # Reactive to hold dependencies
 redd_encounter_dependencies = reactive({
   redd_encounter_id = selected_redd_encounter_data()$redd_encounter_id
-  redd_enc_dep = get_redd_encounter_dependencies(redd_encounter_id)
+  redd_enc_dep = get_redd_encounter_dependencies(pool, redd_encounter_id)
   return(redd_enc_dep)
 })
 
@@ -460,13 +468,13 @@ observeEvent(input$redd_enc_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_redd_encounter, {
   tryCatch({
-    redd_encounter_delete(selected_redd_encounter_data())
+    redd_encounter_delete(pool, selected_redd_encounter_data())
     shinytoastr::toastr_success("Redd count data was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  redd_encounters_after_delete = get_redd_encounter(selected_survey_event_data()$survey_event_id) %>%
+  redd_encounters_after_delete = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_encounter_dt_proxy, redd_encounters_after_delete)

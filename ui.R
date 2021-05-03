@@ -12,7 +12,7 @@ ui = dashboardPage(
                 br(),
                 box(
                   title = "Select Stream and survey date range",
-                  loadingState(),
+                  #loadingState(),
                   width = 12,
                   height = "800px",
                   closable = FALSE,
@@ -26,7 +26,8 @@ ui = dashboardPage(
                     icon = shiny::icon("bars"),
                     wria_stream_ui
                   ),
-                  leafletOutput("stream_map", height = "800px")
+                  leafletOutput("stream_map", height = "800px") %>%
+                    shinycssloaders::withSpinner(., size = 0.5)
                 )
               )
       ),
@@ -42,7 +43,7 @@ ui = dashboardPage(
                   solidHeader = FALSE,
                   collapsed = FALSE,
                   survey_ui
-                ),
+                 ),
                 box(
                   title = "Survey comments",
                   width = 12,

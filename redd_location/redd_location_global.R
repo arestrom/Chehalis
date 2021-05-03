@@ -1,6 +1,6 @@
 
 # Query for newly entered redd_locations
-get_new_redd_location = function(waterbody_id) {
+get_new_redd_location = function(pool, waterbody_id) {
   # Define query for new redd locations...no attached surveys yet...finds new entries
   qry = glue("select rloc.location_id as redd_location_id, ",
              "rloc.location_name as redd_name, ",
@@ -31,7 +31,7 @@ get_new_redd_location = function(waterbody_id) {
 }
 
 # Query for previously entered redd_locations
-get_previous_redd_location = function(waterbody_id, up_rm, lo_rm, survey_date, species_id) {
+get_previous_redd_location = function(pool, waterbody_id, up_rm, lo_rm, survey_date, species_id) {
   # Define query for existing redd location entries with surveys attached
   qry = glue("select s.survey_datetime as redd_survey_date, ",
              "se.species_id as db_species_id, ",
@@ -73,10 +73,10 @@ get_previous_redd_location = function(waterbody_id, up_rm, lo_rm, survey_date, s
 }
 
 # Main redd_location query...includes redds within time-span four months prior
-get_redd_locations = function(waterbody_id, up_rm, lo_rm, survey_date, species_id) {
-  new_locs= get_new_redd_location(waterbody_id)
+get_redd_locations = function(pool, waterbody_id, up_rm, lo_rm, survey_date, species_id) {
+  new_locs= get_new_redd_location(pool, waterbody_id)
   # Get pre-existing redd locations
-  prev_locs = get_previous_redd_location(waterbody_id, up_rm, lo_rm, survey_date, species_id)
+  prev_locs = get_previous_redd_location(pool, waterbody_id, up_rm, lo_rm, survey_date, species_id)
   redd_locations = bind_rows(new_locs, prev_locs) %>%
     mutate(latitude = round(latitude, 7)) %>%
     mutate(longitude = round(longitude, 7)) %>%
@@ -97,7 +97,7 @@ get_redd_locations = function(waterbody_id, up_rm, lo_rm, survey_date, species_i
 }
 
 # Redd_coordinates query...for setting redd_marker when redd_location row is selected
-get_redd_coordinates = function(redd_location_id) {
+get_redd_coordinates = function(pool, redd_location_id) {
   qry = glue("select loc.location_id, lc.location_coordinates_id, ",
              "st_x(st_transform(lc.geom, 4326)) as longitude, ",
              "st_y(st_transform(lc.geom, 4326)) as latitude, ",
@@ -130,7 +130,7 @@ get_redd_coordinates = function(redd_location_id) {
 #==========================================================================
 
 # Redd status
-get_redd_channel_type = function() {
+get_redd_channel_type = function(pool) {
   qry = glue("select stream_channel_type_id, channel_type_description as channel_type ",
              "from spawning_ground.stream_channel_type_lut ",
              "where obsolete_datetime is null")
@@ -143,7 +143,7 @@ get_redd_channel_type = function() {
 }
 
 # Redd status
-get_redd_orientation_type = function() {
+get_redd_orientation_type = function(pool) {
   qry = glue("select location_orientation_type_id, orientation_type_description as orientation_type ",
              "from spawning_ground.location_orientation_type_lut ",
              "where obsolete_datetime is null")
@@ -160,7 +160,7 @@ get_redd_orientation_type = function() {
 #========================================================
 
 # Define the insert callback
-redd_location_insert = function(new_redd_location_values) {
+redd_location_insert = function(pool, new_redd_location_values) {
   new_insert_values = new_redd_location_values
   # Generate location_id
   location_id = get_uuid(1L)
@@ -218,7 +218,7 @@ redd_location_insert = function(new_redd_location_values) {
 #==============================================================
 
 # Identify redd_encounter dependencies prior to delete
-get_redd_location_surveys = function(redd_location_id) {
+get_redd_location_surveys = function(pool, redd_location_id) {
   qry = glue("select s.survey_datetime as survey_date, ",
              "s.observer_last_name as observer, ",
              "re.redd_count, mt.media_type_code as media_type, ",
@@ -242,7 +242,7 @@ get_redd_location_surveys = function(redd_location_id) {
 }
 
 # Define update callback
-redd_location_update = function(redd_location_edit_values, selected_redd_location_data) {
+redd_location_update = function(pool, redd_location_edit_values, selected_redd_location_data) {
   edit_values = redd_location_edit_values
   # Pull out data for location table
   location_id = edit_values$redd_location_id
@@ -309,7 +309,7 @@ redd_location_update = function(redd_location_edit_values, selected_redd_locatio
 #==============================================================
 
 # Identify redd location dependencies prior to delete
-get_redd_location_dependencies = function(redd_location_id) {
+get_redd_location_dependencies = function(pool, redd_location_id) {
   qry = glue("select rd.redd_encounter_id, rd.redd_encounter_datetime as redd_encounter_time, ",
              "rd.redd_count, rs.redd_status_short_description as redd_status, ",
              "rd.redd_location_id, loc.location_name as redd_name, rd.comment_text as redd_comment, ",
@@ -344,7 +344,7 @@ get_redd_location_dependencies = function(redd_location_id) {
 #========================================================
 
 # Define delete callback
-redd_location_delete = function(delete_values) {
+redd_location_delete = function(pool, delete_values) {
   redd_location_id = delete_values$redd_location_id
   con = poolCheckout(pool)
   # New function...delete only after all dependencies are removed

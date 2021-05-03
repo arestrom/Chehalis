@@ -1,6 +1,6 @@
 
 # Main waterbody measurements query
-get_waterbody_meas = function(survey_id) {
+get_waterbody_meas = function(pool, survey_id) {
   qry = glue("select wb.waterbody_measurement_id, wc.clarity_type_short_description as clarity_type, ",
              "wb.water_clarity_meter as clarity_meter, wb.stream_flow_measurement_cfs as flow_cfs, ",
              "s.survey_datetime as survey_date, wb.start_water_temperature_celsius as start_temperature, ",
@@ -39,7 +39,7 @@ get_waterbody_meas = function(survey_id) {
 #==========================================================================
 
 # Water clarity type
-get_clarity_type = function() {
+get_clarity_type = function(pool) {
   qry = glue("select water_clarity_type_id, clarity_type_short_description as clarity_type ",
              "from spawning_ground.water_clarity_type_lut ",
              "where obsolete_datetime is null")
@@ -56,7 +56,7 @@ get_clarity_type = function() {
 #========================================================
 
 # Define the insert callback
-waterbody_meas_insert = function(new_wbm_values) {
+waterbody_meas_insert = function(pool, new_wbm_values) {
   new_wbm_values = new_wbm_values
   # Pull out data
   survey_id = new_wbm_values$survey_id
@@ -99,7 +99,7 @@ waterbody_meas_insert = function(new_wbm_values) {
 #========================================================
 
 # Define update callback
-waterbody_meas_update = function(waterbody_meas_edit_values) {
+waterbody_meas_update = function(pool, waterbody_meas_edit_values) {
   edit_values = waterbody_meas_edit_values
   # Pull out data
   waterbody_measurement_id = edit_values$waterbody_measurement_id
@@ -143,7 +143,7 @@ waterbody_meas_update = function(waterbody_meas_edit_values) {
 #========================================================
 
 # Define delete callback
-waterbody_meas_delete = function(delete_values) {
+waterbody_meas_delete = function(pool, delete_values) {
   waterbody_measurement_id = delete_values$waterbody_measurement_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

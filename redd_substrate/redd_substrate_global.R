@@ -1,6 +1,6 @@
 
 # Main individual_redd query
-get_redd_substrate = function(redd_encounter_id) {
+get_redd_substrate = function(pool, redd_encounter_id) {
   qry = glue("select rs.redd_substrate_id, sl.substrate_level_short_description as substrate_level, ",
              "st.substrate_type_description as substrate_type, ",
              "rs.substrate_percent as substrate_pct, ",
@@ -30,7 +30,7 @@ get_redd_substrate = function(redd_encounter_id) {
 #==========================================================================
 
 # Redd shape
-get_substrate_level = function() {
+get_substrate_level = function(pool) {
   qry = glue("select substrate_level_id, substrate_level_short_description as substrate_level ",
              "from spawning_ground.substrate_level_lut ",
              "where obsolete_datetime is null")
@@ -43,7 +43,7 @@ get_substrate_level = function() {
 }
 
 # Substrate type
-get_substrate_type = function() {
+get_substrate_type = function(pool) {
   qry = glue("select substrate_type_id, substrate_type_description as substrate_type ",
              "from spawning_ground.substrate_type_lut ",
              "where obsolete_datetime is null")
@@ -60,7 +60,7 @@ get_substrate_type = function() {
 #========================================================
 
 # Define the insert callback
-redd_substrate_insert = function(new_redd_substrate_values) {
+redd_substrate_insert = function(pool, new_redd_substrate_values) {
   new_insert_values = new_redd_substrate_values
   # Pull out data
   redd_encounter_id = new_insert_values$redd_encounter_id
@@ -91,7 +91,7 @@ redd_substrate_insert = function(new_redd_substrate_values) {
 #========================================================
 
 # Define update callback
-redd_substrate_update = function(redd_substrate_edit_values) {
+redd_substrate_update = function(pool, redd_substrate_edit_values) {
   edit_values = redd_substrate_edit_values
   # Pull out data
   redd_substrate_id = edit_values$redd_substrate_id
@@ -124,7 +124,7 @@ redd_substrate_update = function(redd_substrate_edit_values) {
 #========================================================
 
 # Define delete callback
-redd_substrate_delete = function(delete_values) {
+redd_substrate_delete = function(pool, delete_values) {
   redd_substrate_id = delete_values$redd_substrate_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

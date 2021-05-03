@@ -1,6 +1,7 @@
 
 output$area_surveyed_select = renderUI({
-  area_surveyed_list = get_area_surveyed()$area_surveyed
+  req(valid_connection == TRUE)
+  area_surveyed_list = get_area_surveyed(pool)$area_surveyed
   area_surveyed_list = c("", area_surveyed_list)
   selectizeInput("area_surveyed_select", label = "area_surveyed_condition",
                  choices = area_surveyed_list, selected = NULL,
@@ -8,7 +9,8 @@ output$area_surveyed_select = renderUI({
 })
 
 output$abundance_condition_select = renderUI({
-  abundance_condition_list = get_abundance_condition()$abundance_condition
+  req(valid_connection == TRUE)
+  abundance_condition_list = get_abundance_condition(pool)$abundance_condition
   abundance_condition_list = c("", abundance_condition_list)
   selectizeInput("abundance_condition_select", label = "abundance_condition",
                  choices = abundance_condition_list, selected = NULL,
@@ -16,7 +18,8 @@ output$abundance_condition_select = renderUI({
 })
 
 output$stream_condition_select = renderUI({
-  stream_condition_list = get_stream_condition()$stream_condition
+  req(valid_connection == TRUE)
+  stream_condition_list = get_stream_condition(pool)$stream_condition
   stream_condition_list = c("", stream_condition_list)
   selectizeInput("stream_condition_select", label = "stream_condition",
                  choices = stream_condition_list, selected = NULL,
@@ -24,7 +27,8 @@ output$stream_condition_select = renderUI({
 })
 
 output$stream_flow_select = renderUI({
-  stream_flow_list = get_stream_flow()$stream_flow
+  req(valid_connection == TRUE)
+  stream_flow_list = get_stream_flow(pool)$stream_flow
   stream_flow_list = c("", stream_flow_list)
   selectizeInput("stream_flow_select", label = "stream_flow",
                  choices = stream_flow_list, selected = NULL,
@@ -32,7 +36,8 @@ output$stream_flow_select = renderUI({
 })
 
 output$count_condition_select = renderUI({
-  count_condition_list = get_count_condition()$count_condition
+  req(valid_connection == TRUE)
+  count_condition_list = get_count_condition(pool)$count_condition
   count_condition_list = c("", count_condition_list)
   selectizeInput("count_condition_select", label = "count_condition",
                  choices = count_condition_list, selected = NULL,
@@ -40,7 +45,8 @@ output$count_condition_select = renderUI({
 })
 
 output$survey_direction_select = renderUI({
-  survey_direction_list = get_survey_direction()$survey_direction
+  req(valid_connection == TRUE)
+  survey_direction_list = get_survey_direction(pool)$survey_direction
   survey_direction_list = c("", survey_direction_list)
   selectizeInput("survey_direction_select", label = "survey_direction",
                  choices = survey_direction_list, selected = NULL,
@@ -48,7 +54,8 @@ output$survey_direction_select = renderUI({
 })
 
 output$survey_timing_select = renderUI({
-  survey_timing_list = get_survey_timing()$survey_timing
+  req(valid_connection == TRUE)
+  survey_timing_list = get_survey_timing(pool)$survey_timing
   survey_timing_list = c("", survey_timing_list)
   selectizeInput("survey_timing_select", label = "survey_timing_condition",
                  choices = survey_timing_list, selected = NULL,
@@ -56,7 +63,8 @@ output$survey_timing_select = renderUI({
 })
 
 output$visibility_condition_select = renderUI({
-  visibility_condition_list = get_visibility_condition()$visibility_condition
+  req(valid_connection == TRUE)
+  visibility_condition_list = get_visibility_condition(pool)$visibility_condition
   visibility_condition_list = c("", visibility_condition_list)
   selectizeInput("visibility_condition_select", label = "visibility_condition",
                  choices = visibility_condition_list, selected = NULL,
@@ -64,7 +72,8 @@ output$visibility_condition_select = renderUI({
 })
 
 output$visibility_type_select = renderUI({
-  visibility_type_list = get_visibility_type()$visibility_type
+  req(valid_connection == TRUE)
+  visibility_type_list = get_visibility_type(pool)$visibility_type
   visibility_type_list = c("", visibility_type_list)
   selectizeInput("visibility_type_select", label = "visibility_type",
                  choices = visibility_type_list, selected = NULL,
@@ -72,7 +81,8 @@ output$visibility_type_select = renderUI({
 })
 
 output$weather_type_select = renderUI({
-  weather_type_list = get_weather_type()$weather_type
+  req(valid_connection == TRUE)
+  weather_type_list = get_weather_type(pool)$weather_type
   weather_type_list = c("", weather_type_list)
   selectInput("weather_type_select", label = "weather_type",
                  choices = weather_type_list, selected = NULL,
@@ -86,7 +96,7 @@ output$survey_comments = renderDT({
   survey_comment_title = glue("Survey comments for {input$stream_select} on ",
                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
-  survey_comment_data = get_survey_comment(selected_survey_data()$survey_id) %>%
+  survey_comment_data = get_survey_comment(pool, selected_survey_data()$survey_id) %>%
     select(area_surveyed, abundance_condition, stream_condition,
            stream_flow, count_condition, survey_direction, survey_timing,
            visibility_condition, visibility_type, weather_type, survey_comment,
@@ -118,7 +128,7 @@ selected_survey_comment_data = reactive({
   req(input$tabs == "data_entry")
   req(input$surveys_rows_selected)
   req(input$survey_comments_rows_selected)
-  survey_comment_data = get_survey_comment(selected_survey_data()$survey_id)
+  survey_comment_data = get_survey_comment(pool, selected_survey_data()$survey_id)
   survey_comment_row = input$survey_comments_rows_selected
   selected_survey_comment = tibble(survey_comment_id = survey_comment_data$survey_comment_id[survey_comment_row],
                                    area_surveyed = survey_comment_data$area_surveyed[survey_comment_row],
@@ -166,7 +176,7 @@ observeEvent(input$survey_comments_rows_selected, {
 # Disable "New" button if a row of comments already exists
 observe({
   input$insert_survey_comment
-  survey_comment_data = get_survey_comment(selected_survey_data()$survey_id)
+  survey_comment_data = get_survey_comment(pool, selected_survey_data()$survey_id)
   if (nrow(survey_comment_data) >= 1L) {
     shinyjs::disable("comment_add")
   } else {
@@ -184,7 +194,7 @@ survey_comment_create = reactive({
   if (area_surveyed_input == "" ) {
     area_surveyed_id = NA_character_
   } else {
-    area_surveyed_vals = get_area_surveyed()
+    area_surveyed_vals = get_area_surveyed(pool)
     area_surveyed_id = area_surveyed_vals %>%
       filter(area_surveyed == area_surveyed_input) %>%
       pull(area_surveyed_id)
@@ -194,7 +204,7 @@ survey_comment_create = reactive({
   if ( abundance_condition_input == "" ) {
     fish_abundance_condition_id = NA
   } else {
-    abundance_condition_vals = get_abundance_condition()
+    abundance_condition_vals = get_abundance_condition(pool)
     fish_abundance_condition_id = abundance_condition_vals %>%
       filter(abundance_condition == abundance_condition_input) %>%
       pull(fish_abundance_condition_id)
@@ -204,7 +214,7 @@ survey_comment_create = reactive({
   if ( stream_condition_input == "" ) {
     stream_condition_id = NA
   } else {
-    stream_condition_vals = get_stream_condition()
+    stream_condition_vals = get_stream_condition(pool)
     stream_condition_id = stream_condition_vals %>%
       filter(stream_condition == stream_condition_input) %>%
       pull(stream_condition_id)
@@ -214,7 +224,7 @@ survey_comment_create = reactive({
   if ( stream_flow_input == "" ) {
     stream_flow_type_id = NA
   } else {
-    stream_flow_vals = get_stream_flow()
+    stream_flow_vals = get_stream_flow(pool)
     stream_flow_type_id = stream_flow_vals %>%
       filter(stream_flow == stream_flow_input) %>%
       pull(stream_flow_type_id)
@@ -224,7 +234,7 @@ survey_comment_create = reactive({
   if ( count_condition_input == "" ) {
     survey_count_condition_id = NA
   } else {
-    count_condition_vals = get_count_condition()
+    count_condition_vals = get_count_condition(pool)
     survey_count_condition_id = count_condition_vals %>%
       filter(count_condition == count_condition_input) %>%
       pull(survey_count_condition_id)
@@ -234,7 +244,7 @@ survey_comment_create = reactive({
   if ( survey_direction_input == "" ) {
     survey_direction_id = NA
   } else {
-    survey_direction_vals = get_survey_direction()
+    survey_direction_vals = get_survey_direction(pool)
     survey_direction_id = survey_direction_vals %>%
       filter(survey_direction == survey_direction_input) %>%
       pull(survey_direction_id)
@@ -244,7 +254,7 @@ survey_comment_create = reactive({
   if ( survey_timing_input == "" ) {
     survey_timing_id = NA
   } else {
-    survey_timing_vals = get_survey_timing()
+    survey_timing_vals = get_survey_timing(pool)
     survey_timing_id = survey_timing_vals %>%
       filter(survey_timing == survey_timing_input) %>%
       pull(survey_timing_id)
@@ -254,7 +264,7 @@ survey_comment_create = reactive({
   if (visibility_condition_input == "" ) {
     visibility_condition_id = NA
   } else {
-    visibility_condition_vals = get_visibility_condition()
+    visibility_condition_vals = get_visibility_condition(pool)
     visibility_condition_id = visibility_condition_vals %>%
       filter(visibility_condition == visibility_condition_input) %>%
       pull(visibility_condition_id)
@@ -264,7 +274,7 @@ survey_comment_create = reactive({
   if ( visibility_type_input == "" ) {
     visibility_type_id = NA
   } else {
-    visibility_type_vals = get_visibility_type()
+    visibility_type_vals = get_visibility_type(pool)
     visibility_type_id = visibility_type_vals %>%
       filter(visibility_type == visibility_type_input) %>%
       pull(visibility_type_id)
@@ -274,7 +284,7 @@ survey_comment_create = reactive({
   if ( weather_type_input == "" ) {
     weather_type_id = NA
   } else {
-    weather_type_vals = get_weather_type()
+    weather_type_vals = get_weather_type(pool)
     weather_type_id = weather_type_vals %>%
       filter(weather_type == weather_type_input) %>%
       pull(weather_type_id)
@@ -380,13 +390,13 @@ survey_comment_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_survey_comment, {
   tryCatch({
-    survey_comment_insert(survey_comment_insert_vals())
+    survey_comment_insert(pool, survey_comment_insert_vals())
     shinytoastr::toastr_success("New survey comments were added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_comment_insert_vals = get_survey_comment(selected_survey_data()$survey_id) %>%
+  post_comment_insert_vals = get_survey_comment(pool, selected_survey_data()$survey_id) %>%
     select(area_surveyed, abundance_condition, stream_condition,
            stream_flow, count_condition, survey_direction, survey_timing,
            visibility_condition, visibility_type, weather_type, survey_comment,
@@ -405,7 +415,7 @@ survey_comment_edit = reactive({
   if (area_surveyed_input == "" ) {
     area_surveyed_id = NA_character_
   } else {
-    area_surveyed_vals = get_area_surveyed()
+    area_surveyed_vals = get_area_surveyed(pool)
     area_surveyed_id = area_surveyed_vals %>%
       filter(area_surveyed == area_surveyed_input) %>%
       pull(area_surveyed_id)
@@ -415,7 +425,7 @@ survey_comment_edit = reactive({
   if ( abundance_condition_input == "" ) {
     fish_abundance_condition_id = NA
   } else {
-    abundance_condition_vals = get_abundance_condition()
+    abundance_condition_vals = get_abundance_condition(pool)
     fish_abundance_condition_id = abundance_condition_vals %>%
       filter(abundance_condition == abundance_condition_input) %>%
       pull(fish_abundance_condition_id)
@@ -425,7 +435,7 @@ survey_comment_edit = reactive({
   if ( stream_condition_input == "" ) {
     stream_condition_id = NA
   } else {
-    stream_condition_vals = get_stream_condition()
+    stream_condition_vals = get_stream_condition(pool)
     stream_condition_id = stream_condition_vals %>%
       filter(stream_condition == stream_condition_input) %>%
       pull(stream_condition_id)
@@ -435,7 +445,7 @@ survey_comment_edit = reactive({
   if ( stream_flow_input == "" ) {
     stream_flow_type_id = NA
   } else {
-    stream_flow_vals = get_stream_flow()
+    stream_flow_vals = get_stream_flow(pool)
     stream_flow_type_id = stream_flow_vals %>%
       filter(stream_flow == stream_flow_input) %>%
       pull(stream_flow_type_id)
@@ -445,7 +455,7 @@ survey_comment_edit = reactive({
   if ( count_condition_input == "" ) {
     survey_count_condition_id = NA
   } else {
-    count_condition_vals = get_count_condition()
+    count_condition_vals = get_count_condition(pool)
     survey_count_condition_id = count_condition_vals %>%
       filter(count_condition == count_condition_input) %>%
       pull(survey_count_condition_id)
@@ -455,7 +465,7 @@ survey_comment_edit = reactive({
   if ( survey_direction_input == "" ) {
     survey_direction_id = NA
   } else {
-    survey_direction_vals = get_survey_direction()
+    survey_direction_vals = get_survey_direction(pool)
     survey_direction_id = survey_direction_vals %>%
       filter(survey_direction == survey_direction_input) %>%
       pull(survey_direction_id)
@@ -465,7 +475,7 @@ survey_comment_edit = reactive({
   if ( survey_timing_input == "" ) {
     survey_timing_id = NA
   } else {
-    survey_timing_vals = get_survey_timing()
+    survey_timing_vals = get_survey_timing(pool)
     survey_timing_id = survey_timing_vals %>%
       filter(survey_timing == survey_timing_input) %>%
       pull(survey_timing_id)
@@ -475,7 +485,7 @@ survey_comment_edit = reactive({
   if (visibility_condition_input == "" ) {
     visibility_condition_id = NA
   } else {
-    visibility_condition_vals = get_visibility_condition()
+    visibility_condition_vals = get_visibility_condition(pool)
     visibility_condition_id = visibility_condition_vals %>%
       filter(visibility_condition == visibility_condition_input) %>%
       pull(visibility_condition_id)
@@ -485,7 +495,7 @@ survey_comment_edit = reactive({
   if ( visibility_type_input == "" ) {
     visibility_type_id = NA
   } else {
-    visibility_type_vals = get_visibility_type()
+    visibility_type_vals = get_visibility_type(pool)
     visibility_type_id = visibility_type_vals %>%
       filter(visibility_type == visibility_type_input) %>%
       pull(visibility_type_id)
@@ -495,7 +505,7 @@ survey_comment_edit = reactive({
   if ( weather_type_input == "" ) {
     weather_type_id = NA
   } else {
-    weather_type_vals = get_weather_type()
+    weather_type_vals = get_weather_type(pool)
     weather_type_id = weather_type_vals %>%
       filter(weather_type == weather_type_input) %>%
       pull(weather_type_id)
@@ -596,13 +606,13 @@ observeEvent(input$comment_edit, {
 # Update DB and reload DT
 observeEvent(input$save_comment_edits, {
   tryCatch({
-    survey_comment_update(survey_comment_edit())
+    survey_comment_update(pool, survey_comment_edit())
     shinytoastr::toastr_success("Survey comments were edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_comment_edit_vals = get_survey_comment(selected_survey_data()$survey_id) %>%
+  post_comment_edit_vals = get_survey_comment(pool, selected_survey_data()$survey_id) %>%
     select(area_surveyed, abundance_condition, stream_condition,
            stream_flow, count_condition, survey_direction, survey_timing,
            visibility_condition, visibility_type, weather_type, survey_comment,
@@ -617,7 +627,7 @@ observeEvent(input$save_comment_edits, {
 # Generate values to show in modal
 output$survey_comment_modal_delete_vals = renderDT({
   survey_comment_modal_del_id = selected_survey_comment_data()$survey_comment_id
-  survey_comment_modal_del_vals = get_survey_comment(selected_survey_data()$survey_id) %>%
+  survey_comment_modal_del_vals = get_survey_comment(pool, selected_survey_data()$survey_id) %>%
     filter(survey_comment_id == survey_comment_modal_del_id) %>%
     select(area_surveyed, abundance_condition, stream_condition, stream_flow,
            count_condition, survey_direction, survey_timing, visibility_condition,
@@ -666,13 +676,13 @@ observeEvent(input$comment_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_survey_comment, {
   tryCatch({
-    survey_comment_delete(selected_survey_comment_data())
+    survey_comment_delete(pool, selected_survey_comment_data())
     shinytoastr::toastr_success("Survey comments were deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  survey_comments_after_delete = get_survey_comment(selected_survey_data()$survey_id) %>%
+  survey_comments_after_delete = get_survey_comment(pool, selected_survey_data()$survey_id) %>%
     select(area_surveyed, abundance_condition, stream_condition,
            stream_flow, count_condition, survey_direction, survey_timing,
            visibility_condition, visibility_type, weather_type, survey_comment,

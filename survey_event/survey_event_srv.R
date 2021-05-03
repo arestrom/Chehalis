@@ -3,7 +3,8 @@
 #========================================================
 
 output$event_species_select = renderUI({
-  species_list = get_event_species()$species
+  req(valid_connection == TRUE)
+  species_list = get_event_species(pool)$species
   species_list = c("", species_list)
   selectizeInput("event_species_select", label = "species",
                  choices = species_list, selected = NULL,
@@ -11,7 +12,8 @@ output$event_species_select = renderUI({
 })
 
 output$survey_design_select = renderUI({
-  survey_design_list = get_survey_design()$survey_design
+  req(valid_connection == TRUE)
+  survey_design_list = get_survey_design(pool)$survey_design
   survey_design_list = c("", survey_design_list)
   selectizeInput("survey_design_select", label = "survey_design",
                  choices = survey_design_list, selected = NULL,
@@ -19,7 +21,8 @@ output$survey_design_select = renderUI({
 })
 
 output$cwt_detect_method_select = renderUI({
-  cwt_detect_method_list = get_cwt_detect_method()$cwt_detect_method
+  req(valid_connection == TRUE)
+  cwt_detect_method_list = get_cwt_detect_method(pool)$cwt_detect_method
   cwt_detect_method_list = c("", cwt_detect_method_list)
   selectizeInput("cwt_detect_method_select", label = "cwt_detect_method",
                  choices = cwt_detect_method_list, selected = "Not applicable",
@@ -27,7 +30,8 @@ output$cwt_detect_method_select = renderUI({
 })
 
 output$run_select = renderUI({
-  run_list = get_run()$run
+  req(valid_connection == TRUE)
+  run_list = get_run(pool)$run
   run_list = c("", run_list)
   selectizeInput("run_select", label = "run",
                  choices = run_list, selected = "Unknown",
@@ -35,9 +39,13 @@ output$run_select = renderUI({
 })
 
 output$run_year_select = renderUI({
-  run_year_list = seq(as.integer(year_vals()) - 4L, as.integer(year_vals()) + 1L)
-  selectizeInput("run_year_select", label = "run_year",
-                 choices = run_year_list, selected = as.integer(year_vals()),
+  start_year = as.integer(substr(input$when_date_range[1], 1, 4))
+  end_year = as.integer(substr(input$when_date_range[2], 1, 4))
+  run_year_list = seq(start_year - 4L, end_year + 1L)
+  selectizeInput("run_year_select",
+                 label = "run_year",
+                 choices = run_year_list,
+                 selected = start_year,
                  width = "125px")
 })
 
@@ -52,7 +60,7 @@ output$survey_events = renderDT({
   survey_event_title = glue("Species data for {input$stream_select} on ",
                              "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                              "to {selected_survey_data()$lo_rm}")
-  survey_event_data = get_survey_event(selected_survey_data()$survey_id) %>%
+  survey_event_data = get_survey_event(pool, selected_survey_data()$survey_id) %>%
     select(species, survey_design, cwt_detect_method, run, run_year, pct_fish_seen, species_comment,
            created_dt, created_by, modified_dt, modified_by)
 
@@ -84,7 +92,7 @@ selected_survey_event_data = reactive({
   req(input$tabs == "data_entry")
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
-  survey_event_data = get_survey_event(selected_survey_data()$survey_id)
+  survey_event_data = get_survey_event(pool, selected_survey_data()$survey_id)
   survey_event_row = input$survey_events_rows_selected
   selected_survey_event = tibble(survey_event_id = survey_event_data$survey_event_id[survey_event_row],
                                  species_id = survey_event_data$species_id[survey_event_row],
@@ -132,7 +140,7 @@ survey_event_create = reactive({
   if (event_species_input == "" ) {
     species_id = NA_character_
   } else {
-    event_species_vals = get_event_species()
+    event_species_vals = get_event_species(pool)
     species_id = event_species_vals %>%
       filter(species == event_species_input) %>%
       pull(species_id)
@@ -142,7 +150,7 @@ survey_event_create = reactive({
   if ( survey_design_input == "" ) {
     survey_design_type_id = NA
   } else {
-    survey_design_vals = get_survey_design()
+    survey_design_vals = get_survey_design(pool)
     survey_design_type_id = survey_design_vals %>%
       filter(survey_design == survey_design_input) %>%
       pull(survey_design_type_id)
@@ -152,7 +160,7 @@ survey_event_create = reactive({
   if ( cwt_detect_method_input == "" ) {
     cwt_detection_method_id = NA
   } else {
-    cwt_detect_method_vals = get_cwt_detect_method()
+    cwt_detect_method_vals = get_cwt_detect_method(pool)
     cwt_detection_method_id = cwt_detect_method_vals %>%
       filter(cwt_detect_method == cwt_detect_method_input) %>%
       pull(cwt_detection_method_id)
@@ -162,7 +170,7 @@ survey_event_create = reactive({
   if ( run_input == "" ) {
     run_id = NA
   } else {
-    run_vals = get_run()
+    run_vals = get_run(pool)
     run_id = run_vals %>%
       filter(run == run_input) %>%
       pull(run_id)
@@ -209,7 +217,7 @@ output$survey_event_modal_insert_vals = renderDT({
 # Modal for new intents. Need a dup flag, multiple rows possible
 observeEvent(input$survey_event_add, {
   new_survey_event_vals = survey_event_create()
-  existing_survey_event_vals = get_survey_event(selected_survey_data()$survey_id) %>%
+  existing_survey_event_vals = get_survey_event(pool, selected_survey_data()$survey_id) %>%
     select(species, survey_design, run, run_year)
   dup_event_flag = dup_survey_event(new_survey_event_vals, existing_survey_event_vals)
   showModal(
@@ -265,13 +273,13 @@ survey_event_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_survey_event, {
   tryCatch({
-    survey_event_insert(survey_event_insert_vals())
+    survey_event_insert(pool, survey_event_insert_vals())
     shinytoastr::toastr_success("New species data was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_event_insert_vals = get_survey_event(selected_survey_data()$survey_id) %>%
+  post_event_insert_vals = get_survey_event(pool, selected_survey_data()$survey_id) %>%
     select(species, survey_design, cwt_detect_method, run, run_year, pct_fish_seen,
            species_comment, created_dt, created_by, modified_dt, modified_by)
   replaceData(survey_event_dt_proxy, post_event_insert_vals)
@@ -289,7 +297,7 @@ survey_event_edit = reactive({
   if (event_species_input == "" ) {
     species_id = NA_character_
   } else {
-    event_species_vals = get_event_species()
+    event_species_vals = get_event_species(pool)
     species_id = event_species_vals %>%
       filter(species == event_species_input) %>%
       pull(species_id)
@@ -299,7 +307,7 @@ survey_event_edit = reactive({
   if ( survey_design_input == "" ) {
     survey_design_type_id = NA
   } else {
-    survey_design_vals = get_survey_design()
+    survey_design_vals = get_survey_design(pool)
     survey_design_type_id = survey_design_vals %>%
       filter(survey_design == survey_design_input) %>%
       pull(survey_design_type_id)
@@ -309,7 +317,7 @@ survey_event_edit = reactive({
   if ( cwt_detect_method_input == "" ) {
     cwt_detection_method_id = NA
   } else {
-    cwt_detect_method_vals = get_cwt_detect_method()
+    cwt_detect_method_vals = get_cwt_detect_method(pool)
     cwt_detection_method_id = cwt_detect_method_vals %>%
       filter(cwt_detect_method == cwt_detect_method_input) %>%
       pull(cwt_detection_method_id)
@@ -319,7 +327,7 @@ survey_event_edit = reactive({
   if ( run_input == "" ) {
     run_id = NA
   } else {
-    run_vals = get_run()
+    run_vals = get_run(pool)
     run_id = run_vals %>%
       filter(run == run_input) %>%
       pull(run_id)
@@ -408,13 +416,13 @@ observeEvent(input$survey_event_edit, {
 # Update DB and reload DT
 observeEvent(input$save_survey_event_edits, {
   tryCatch({
-    survey_event_update(survey_event_edit())
+    survey_event_update(pool, survey_event_edit())
     shinytoastr::toastr_success("Species data was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_survey_event_edit_vals = get_survey_event(selected_survey_data()$survey_id) %>%
+  post_survey_event_edit_vals = get_survey_event(pool, selected_survey_data()$survey_id) %>%
     select(species, survey_design, cwt_detect_method, run, run_year, pct_fish_seen,
            species_comment, created_dt, created_by, modified_dt, modified_by)
   replaceData(survey_event_dt_proxy, post_survey_event_edit_vals)
@@ -427,7 +435,7 @@ observeEvent(input$save_survey_event_edits, {
 # Generate values to show in modal
 output$survey_event_modal_delete_vals = renderDT({
   survey_event_modal_del_id = selected_survey_event_data()$survey_event_id
-  survey_event_modal_del_vals = get_survey_event(selected_survey_data()$survey_id) %>%
+  survey_event_modal_del_vals = get_survey_event(pool, selected_survey_data()$survey_id) %>%
     filter(survey_event_id == survey_event_modal_del_id) %>%
     select(species, survey_design, cwt_detect_method, run, run_year,
            pct_fish_seen, species_comment)
@@ -445,7 +453,7 @@ output$survey_event_modal_delete_vals = renderDT({
 
 observeEvent(input$survey_event_delete, {
   survey_event_id = selected_survey_event_data()$survey_event_id
-  survey_event_dependencies = get_survey_event_dependencies(survey_event_id)
+  survey_event_dependencies = get_survey_event_dependencies(pool, survey_event_id)
   table_names = paste0(names(survey_event_dependencies), collapse = ", ")
   table_names = gsub("survey_event", "species_data", table_names)
   showModal(
@@ -478,13 +486,13 @@ observeEvent(input$survey_event_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_survey_event, {
   tryCatch({
-    survey_event_delete(selected_survey_event_data())
+    survey_event_delete(pool, selected_survey_event_data())
     shinytoastr::toastr_success("Species data was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  survey_events_after_delete = get_survey_event(selected_survey_data()$survey_id) %>%
+  survey_events_after_delete = get_survey_event(pool, selected_survey_data()$survey_id) %>%
     select(species, survey_design, cwt_detect_method, run, run_year, pct_fish_seen,
            species_comment, created_dt, created_by, modified_dt, modified_by)
   replaceData(survey_event_dt_proxy, survey_events_after_delete)

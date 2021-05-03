@@ -4,7 +4,8 @@
 #========================================================
 
 output$reach_point_type_select = renderUI({
-  reach_point_type_list = get_location_type()$reach_point_type
+  req(valid_connection == TRUE)
+  reach_point_type_list = get_location_type(pool)$reach_point_type
   reach_point_type_list = c("", reach_point_type_list)
   selectizeInput("reach_point_type_select", label = "reach_point_type",
                  choices = reach_point_type_list, selected = "Reach boundary point",
@@ -17,10 +18,11 @@ output$reach_point_type_select = renderUI({
 
 # Primary DT datatable for survey_intent
 output$reach_points = renderDT({
+  req(valid_connection == TRUE)
   req(input$tabs == "reach_point")
   req(input$stream_select)
   reach_point_title = glue("Reach points for {input$stream_select}")
-  reach_point_data = get_reach_point(waterbody_id()) %>%
+  reach_point_data = get_reach_point(pool, waterbody_id()) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -50,9 +52,10 @@ reach_point_dt_proxy = dataTableProxy(outputId = "reach_points")
 
 # Create reactive to collect input values for update and delete actions
 selected_reach_point_data = reactive({
+  req(valid_connection == TRUE)
   req(input$tabs == "reach_point")
   req(input$reach_points_rows_selected)
-  reach_point_data = get_reach_point(waterbody_id())
+  reach_point_data = get_reach_point(pool, waterbody_id())
   reach_point_row = input$reach_points_rows_selected
   selected_reach_point = tibble(location_id = reach_point_data$location_id[reach_point_row],
                                 location_coordinates_id = reach_point_data$location_coordinates_id[reach_point_row],
@@ -98,21 +101,29 @@ observeEvent(input$reach_points_rows_selected, {
 # 2. input$reach_point_latitude_input is either value or NA
 # See: https://rstudio.github.io/leaflet/markers.html
 output$reach_point_map <- renderLeaflet({
+  req(valid_connection == TRUE)
   req(input$tabs == "reach_point")
   # Force map to rerender every time use_reach_point_map button is clicked
   input$use_reach_point_map
-  reach_coords = get_reach_point(waterbody_id()) %>%
+  reach_coords = get_reach_point(pool, waterbody_id()) %>%
     filter(!is.na(latitude) & !is.na(longitude)) %>%
-    mutate(min_lat = min(latitude),
-           min_lon = min(longitude),
-           max_lat = max(latitude),
-           max_lon = max(longitude)) %>%
+    mutate(min_lat = NA_real_,
+           min_lon = NA_real_,
+           max_lat = NA_real_,
+           max_lon = NA_real_) %>%
     mutate(reach_descr = if_else(is.na(reach_point_description),
                                  "No description",
                                  reach_point_description)) %>%
     mutate(reach_label = paste0("River mile: ", river_mile, ", ", reach_descr)) %>%
     select(location_id, reach_label, latitude, longitude,
            min_lat, min_lon, max_lat, max_lon)
+  if ( nrow(reach_coords) > 0L ) {
+    reach_coords = reach_coords %>%
+      mutate(min_lat = min(latitude),
+             min_lon = min(longitude),
+             max_lat = max(latitude),
+             max_lon = max(longitude))
+  }
   # Get data for setting map bounds ========================
   if ( nrow(reach_coords) == 0L |
        is.na(input$reach_point_latitude_input) |
@@ -273,12 +284,13 @@ observeEvent(input$capture_reach_point, {
 
 # Create reactive to collect input values for insert actions
 reach_point_create = reactive({
+  req(valid_connection == TRUE)
   # Location type
   reach_point_type_input = input$reach_point_type_select
   if ( reach_point_type_input == "" ) {
     location_type_id = NA
   } else {
-    reach_point_type_vals = get_location_type()
+    reach_point_type_vals = get_location_type(pool)
     location_type_id = reach_point_type_vals %>%
       filter(reach_point_type == reach_point_type_input) %>%
       pull(location_type_id)
@@ -317,16 +329,14 @@ output$reach_point_modal_insert_vals = renderDT({
 # Modal for new reach point locations
 observeEvent(input$reach_point_add, {
   new_reach_point_vals = reach_point_create()
-  old_reach_point_vals = get_reach_point(waterbody_id())
+  old_reach_point_vals = get_reach_point(pool, waterbody_id())
   new_coords = paste0(new_reach_point_vals$latitude, ":", new_reach_point_vals$longitude)
   old_coords = paste0(old_reach_point_vals$latitude, ":", old_reach_point_vals$longitude)
   showModal(
     # Verify required fields have data...none can be blank
     tags$div(id = "reach_point_insert_modal",
              if ( is.na(new_reach_point_vals$river_mile) |
-                  is.na(new_reach_point_vals$location_type_id) |
-                  is.na(new_reach_point_vals$latitude) |
-                  is.na(new_reach_point_vals$longitude) ) {
+                  is.na(new_reach_point_vals$location_type_id) ) {
                modalDialog (
                  size = "m",
                  title = "Warning",
@@ -344,7 +354,9 @@ observeEvent(input$reach_point_add, {
                  footer = NULL
                )
                # Verify no set of coordinates are duplicated
-             } else if ( new_coords %in% old_coords ) {
+             } else if ( !is.na(new_reach_point_vals$latitude) &
+                         !is.na(new_reach_point_vals$longitude) &
+                         new_coords %in% old_coords ) {
                modalDialog (
                  size = "m",
                  title = "Warning",
@@ -387,13 +399,13 @@ reach_point_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_reach_point, {
   tryCatch({
-    reach_point_insert(reach_point_insert_vals())
+    reach_point_insert(pool, reach_point_insert_vals())
     shinytoastr::toastr_success("New reach end point was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_reach_point_insert_vals = get_reach_point(waterbody_id()) %>%
+  post_reach_point_insert_vals = get_reach_point(pool, waterbody_id()) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -406,12 +418,14 @@ observeEvent(input$insert_reach_point, {
 
 # Create reactive to collect input values for insert actions
 reach_point_edit = reactive({
+  req(valid_connection == TRUE)
+  req(selected_reach_point_data())
   # Location type
   reach_point_type_input = input$reach_point_type_select
   if ( reach_point_type_input == "" ) {
     location_type_id = NA
   } else {
-    reach_point_type_vals = get_location_type()
+    reach_point_type_vals = get_location_type(pool)
     location_type_id = reach_point_type_vals %>%
       filter(reach_point_type == reach_point_type_input) %>%
       pull(location_type_id)
@@ -433,7 +447,7 @@ reach_point_edit = reactive({
 
 dependent_reach_point_surveys = reactive({
   location_id = selected_reach_point_data()$location_id
-  reach_point_srv = get_reach_point_surveys(location_id)
+  reach_point_srv = get_reach_point_surveys(pool, location_id)
   return(reach_point_srv)
 })
 
@@ -564,13 +578,13 @@ observeEvent(input$reach_point_edit, {
 # Update DB and reload DT
 observeEvent(input$save_reach_point_edits, {
   tryCatch({
-    reach_point_update(reach_point_edit(), selected_reach_point_data())
+    reach_point_update(pool, reach_point_edit(), selected_reach_point_data())
     shinytoastr::toastr_success("Reach end point was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_reach_point_edit_vals = get_reach_point(waterbody_id()) %>%
+  post_reach_point_edit_vals = get_reach_point(pool, waterbody_id()) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description,
            created_dt, created_by, modified_dt, modified_by)
@@ -584,7 +598,7 @@ observeEvent(input$save_reach_point_edits, {
 # Generate values to show in modal
 output$reach_point_modal_delete_vals = renderDT({
   reach_point_modal_del_id = selected_reach_point_data()$location_id
-  reach_point_modal_del_vals = get_reach_point(waterbody_id()) %>%
+  reach_point_modal_del_vals = get_reach_point(pool, waterbody_id()) %>%
     filter(location_id == reach_point_modal_del_id) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description)
@@ -603,7 +617,7 @@ output$reach_point_modal_delete_vals = renderDT({
 # Reactive to hold dependencies
 reach_point_dependencies = reactive({
   location_id = selected_reach_point_data()$location_id
-  reach_point_dep = get_reach_point_dependencies(location_id)
+  reach_point_dep = get_reach_point_dependencies(pool, location_id)
   return(reach_point_dep)
 })
 
@@ -674,13 +688,13 @@ observeEvent(input$reach_point_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_reach_point, {
   tryCatch({
-    reach_point_delete(selected_reach_point_data())
+    reach_point_delete(pool, selected_reach_point_data())
     shinytoastr::toastr_success("Reach end point was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  reach_points_after_delete = get_reach_point(waterbody_id()) %>%
+  reach_points_after_delete = get_reach_point(pool, waterbody_id()) %>%
     select(river_mile, reach_point_type, reach_point_code, reach_point_name,
            latitude, longitude, horiz_accuracy, reach_point_description,
            created_dt, created_by, modified_dt, modified_by)

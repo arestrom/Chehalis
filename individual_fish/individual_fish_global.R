@@ -1,6 +1,6 @@
 
 # Main fish_encounter query
-get_individual_fish = function(fish_encounter_id) {
+get_individual_fish = function(pool, fish_encounter_id) {
   qry = glue("select ind.individual_fish_id, ",
              "fc.fish_condition_short_description as fish_condition, ",
              "ft.trauma_type_short_description as fish_trauma, ",
@@ -52,7 +52,7 @@ get_individual_fish = function(fish_encounter_id) {
 #==========================================================================
 
 # Fish condition
-get_fish_condition = function() {
+get_fish_condition = function(pool) {
   qry = glue("select fish_condition_type_id, fish_condition_short_description as fish_condition ",
              "from spawning_ground.fish_condition_type_lut ",
              "where obsolete_datetime is null")
@@ -65,7 +65,7 @@ get_fish_condition = function() {
 }
 
 # Fish trauma
-get_fish_trauma = function() {
+get_fish_trauma = function(pool) {
   qry = glue("select fish_trauma_type_id, trauma_type_short_description as fish_trauma ",
              "from spawning_ground.fish_trauma_type_lut ",
              "where obsolete_datetime is null")
@@ -78,7 +78,7 @@ get_fish_trauma = function() {
 }
 
 # Gill conditon
-get_gill_condition = function() {
+get_gill_condition = function(pool) {
   qry = glue("select gill_condition_type_id, gill_condition_type_description as gill_condition ",
              "from spawning_ground.gill_condition_type_lut ",
              "where obsolete_datetime is null")
@@ -91,7 +91,7 @@ get_gill_condition = function() {
 }
 
 # Spawn conditon
-get_spawn_condition = function() {
+get_spawn_condition = function(pool) {
   qry = glue("select spawn_condition_type_id, spawn_condition_short_description as spawn_condition ",
              "from spawning_ground.spawn_condition_type_lut ",
              "where obsolete_datetime is null")
@@ -104,7 +104,7 @@ get_spawn_condition = function() {
 }
 
 # Age code
-get_age_code = function() {
+get_age_code = function(pool) {
   qry = glue("select age_code_id, european_age_code as age_code, gilbert_rich_age_code as gr ",
              "from spawning_ground.age_code_lut ",
              "where obsolete_datetime is null")
@@ -119,7 +119,7 @@ get_age_code = function() {
 }
 
 # CWT result
-get_cwt_result = function() {
+get_cwt_result = function(pool) {
   qry = glue("select cwt_result_type_id, cwt_result_type_short_description as cwt_result ",
              "from spawning_ground.cwt_result_type_lut ",
              "where obsolete_datetime is null")
@@ -136,7 +136,7 @@ get_cwt_result = function() {
 #========================================================
 
 # Define the insert callback
-individual_fish_insert = function(new_individual_fish_values) {
+individual_fish_insert = function(pool, new_individual_fish_values) {
   new_insert_values = new_individual_fish_values
   # Pull out data
   fish_encounter_id = new_insert_values$fish_encounter_id
@@ -207,7 +207,7 @@ individual_fish_insert = function(new_individual_fish_values) {
 #========================================================
 
 # Define update callback
-individual_fish_update = function(individual_fish_edit_values) {
+individual_fish_update = function(pool, individual_fish_edit_values) {
   edit_values = individual_fish_edit_values
   # Pull out data
   individual_fish_id = edit_values$individual_fish_id
@@ -281,7 +281,7 @@ individual_fish_update = function(individual_fish_edit_values) {
 #========================================================
 
 # Identify fish_encounter dependencies prior to delete
-get_individual_fish_dependencies = function(individual_fish_id) {
+get_individual_fish_dependencies = function(pool, individual_fish_id) {
   qry = glue("select ",
              "count(fl.fish_length_measurement_id) as fish_length_measurement ",
              "from spawning_ground.fish_length_measurement as fl ",
@@ -300,7 +300,7 @@ get_individual_fish_dependencies = function(individual_fish_id) {
 #========================================================
 
 # Define delete callback
-individual_fish_delete = function(delete_values) {
+individual_fish_delete = function(pool, delete_values) {
   individual_fish_id = delete_values$individual_fish_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

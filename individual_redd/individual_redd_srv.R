@@ -4,7 +4,8 @@
 
 # Redd shape
 output$redd_shape_select = renderUI({
-  redd_shape_list = get_redd_shape()$redd_shape
+  req(valid_connection == TRUE)
+  redd_shape_list = get_redd_shape(pool)$redd_shape
   redd_shape_list = c("", redd_shape_list)
   selectizeInput("redd_shape_select", label = "redd_shape",
                  choices = redd_shape_list, selected = NULL,
@@ -13,7 +14,8 @@ output$redd_shape_select = renderUI({
 
 # Dewatered type
 output$dewatered_type_select = renderUI({
-  dewatered_type_list = get_dewatered_type()$dewatered_type
+  req(valid_connection == TRUE)
+  dewatered_type_list = get_dewatered_type(pool)$dewatered_type
   dewatered_type_list = c("", dewatered_type_list)
   selectizeInput("dewatered_type_select", label = "dewatered_type",
                  choices = dewatered_type_list, selected = NULL,
@@ -34,7 +36,7 @@ output$individual_redds = renderDT({
   individual_redd_title = glue("{selected_survey_event_data()$species} individual redd data for {input$stream_select} on ",
                                "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                                "to {selected_survey_data()$lo_rm}")
-  individual_redd_data = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id) %>%
+  individual_redd_data = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, created_dt, created_by, modified_dt, modified_by)
@@ -70,7 +72,7 @@ selected_individual_redd_data = reactive({
   req(input$redd_encounters_rows_selected)
   req(input$individual_redds_rows_selected)
   req(!is.na(selected_redd_encounter_data()$redd_encounter_id))
-  individual_redd_data = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id)
+  individual_redd_data = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id)
   individual_redd_row = input$individual_redds_rows_selected
   selected_individual_redd = tibble(individual_redd_id = individual_redd_data$individual_redd_id[individual_redd_row],
                                     redd_shape = individual_redd_data$redd_shape[individual_redd_row],
@@ -119,7 +121,7 @@ observeEvent(input$individual_redds_rows_selected, {
 observe({
   req(!is.na(selected_redd_encounter_data()$redd_encounter_id))
   input$insert_individual_redd
-  ind_redd_data = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id)
+  ind_redd_data = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id)
   if (nrow(ind_redd_data) >= 1L) {
     shinyjs::disable("ind_redd_add")
   } else {
@@ -143,7 +145,7 @@ individual_redd_create = reactive({
   if ( redd_shape_input == "" ) {
     redd_shape_id = NA
   } else {
-    redd_shape_vals = get_redd_shape()
+    redd_shape_vals = get_redd_shape(pool)
     redd_shape_id = redd_shape_vals %>%
       filter(redd_shape == redd_shape_input) %>%
       pull(redd_shape_id)
@@ -153,7 +155,7 @@ individual_redd_create = reactive({
   if ( dewatered_type_input == "" ) {
     redd_dewatered_type_id = NA
   } else {
-    dewatered_type_vals = get_dewatered_type()
+    dewatered_type_vals = get_dewatered_type(pool)
     redd_dewatered_type_id = dewatered_type_vals %>%
       filter(dewatered_type == dewatered_type_input) %>%
       pull(redd_dewatered_type_id)
@@ -250,13 +252,13 @@ individual_redd_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_individual_redd, {
   tryCatch({
-    individual_redd_insert(individual_redd_insert_vals())
+    individual_redd_insert(pool, individual_redd_insert_vals())
     shinytoastr::toastr_success("New individual redd data was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_individual_redd_insert_vals = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id) %>%
+  post_individual_redd_insert_vals = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, created_dt, created_by, modified_dt, modified_by)
@@ -284,7 +286,7 @@ individual_redd_edit = reactive({
   if ( redd_shape_input == "" ) {
     redd_shape_id = NA
   } else {
-    redd_shape_vals = get_redd_shape()
+    redd_shape_vals = get_redd_shape(pool)
     redd_shape_id = redd_shape_vals %>%
       filter(redd_shape == redd_shape_input) %>%
       pull(redd_shape_id)
@@ -294,7 +296,7 @@ individual_redd_edit = reactive({
   if ( dewatered_type_input == "" ) {
     redd_dewatered_type_id = NA
   } else {
-    dewatered_type_vals = get_dewatered_type()
+    dewatered_type_vals = get_dewatered_type(pool)
     redd_dewatered_type_id = dewatered_type_vals %>%
       filter(dewatered_type == dewatered_type_input) %>%
       pull(redd_dewatered_type_id)
@@ -349,6 +351,8 @@ observeEvent(input$ind_redd_edit, {
     mutate(redd_width_m = as.numeric(redd_width_m)) %>%
     mutate(redd_depth_m = as.numeric(redd_depth_m)) %>%
     mutate(tailspill_height_m = as.numeric(tailspill_height_m)) %>%
+    mutate(pct_superimposed = as.integer(pct_superimposed)) %>%
+    mutate(pct_degraded = as.integer(pct_degraded)) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, individual_redd_comment)
@@ -391,13 +395,13 @@ observeEvent(input$ind_redd_edit, {
 # Update DB and reload DT
 observeEvent(input$save_ind_redd_edits, {
   tryCatch({
-    individual_redd_update(individual_redd_edit())
+    individual_redd_update(pool, individual_redd_edit())
     shinytoastr::toastr_success("Individual redd data was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_individual_redd_edit_vals = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id) %>%
+  post_individual_redd_edit_vals = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, created_dt, created_by, modified_dt, modified_by)
@@ -411,7 +415,7 @@ observeEvent(input$save_ind_redd_edits, {
 # Generate values to show in modal
 output$individual_redd_modal_delete_vals = renderDT({
   individual_redd_modal_del_id = selected_individual_redd_data()$individual_redd_id
-  individual_redd_modal_del_vals = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id) %>%
+  individual_redd_modal_del_vals = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     filter(individual_redd_id == individual_redd_modal_del_id) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
@@ -460,13 +464,13 @@ observeEvent(input$ind_redd_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_individual_redd, {
   tryCatch({
-    individual_redd_delete(selected_individual_redd_data())
+    individual_redd_delete(pool, selected_individual_redd_data())
     shinytoastr::toastr_success("Individual redd data was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  individual_redds_after_delete = get_individual_redd(selected_redd_encounter_data()$redd_encounter_id) %>%
+  individual_redds_after_delete = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
            redd_depth_m, tailspill_height_m, pct_superimposed, pct_degraded,
            superimposed_redd_name, individual_redd_comment,

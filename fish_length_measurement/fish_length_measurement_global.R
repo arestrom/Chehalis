@@ -1,6 +1,6 @@
 
 # Main fish_encounter query
-get_length_measurements = function(individual_fish_id) {
+get_length_measurements = function(pool, individual_fish_id) {
   qry = glue("select flm.fish_length_measurement_id, ",
              "mt.length_type_description as length_type, ",
              "flm.length_measurement_centimeter as length_cm, ",
@@ -30,7 +30,7 @@ get_length_measurements = function(individual_fish_id) {
 #==========================================================================
 
 # Length type
-get_length_type = function() {
+get_length_type = function(pool) {
   qry = glue("select fish_length_measurement_type_id, length_type_description as length_type ",
              "from spawning_ground.fish_length_measurement_type_lut ",
              "where obsolete_datetime is null")
@@ -66,7 +66,7 @@ dup_length_type = function(new_length_type_vals, existing_length_type_vals) {
 #========================================================
 
 # Define the insert callback
-length_measurement_insert = function(new_length_measurement_values) {
+length_measurement_insert = function(pool, new_length_measurement_values) {
   new_insert_values = new_length_measurement_values
   # Pull out data
   individual_fish_id = new_insert_values$individual_fish_id
@@ -95,7 +95,7 @@ length_measurement_insert = function(new_length_measurement_values) {
 #========================================================
 
 # Define update callback
-length_measurement_update = function(length_measurement_edit_values) {
+length_measurement_update = function(pool, length_measurement_edit_values) {
   edit_values = length_measurement_edit_values
   # Pull out data
   fish_length_measurement_id = edit_values$fish_length_measurement_id
@@ -126,7 +126,7 @@ length_measurement_update = function(length_measurement_edit_values) {
 #========================================================
 
 # Define delete callback
-length_measurement_delete = function(delete_values) {
+length_measurement_delete = function(pool, delete_values) {
   fish_length_measurement_id = delete_values$fish_length_measurement_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

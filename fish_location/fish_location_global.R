@@ -1,6 +1,6 @@
 
 # Query for newly entered fish_locations
-get_new_fish_location = function(waterbody_id) {
+get_new_fish_location = function(pool, waterbody_id) {
   # Define query for new fish locations...no attached surveys yet...finds new entries
   qry = glue("select floc.location_id as fish_location_id, ",
              "floc.location_name as fish_name, ",
@@ -31,7 +31,7 @@ get_new_fish_location = function(waterbody_id) {
 }
 
 # Query for previously entered fish_locations
-get_previous_fish_location = function(waterbody_id, up_rm, lo_rm, survey_date, species_id) {
+get_previous_fish_location = function(pool, waterbody_id, up_rm, lo_rm, survey_date, species_id) {
   # Define query for fish locations already tied to surveys
   qry = glue("select s.survey_datetime as fish_survey_date, ",
              "se.species_id as db_species_id, ",
@@ -73,10 +73,10 @@ get_previous_fish_location = function(waterbody_id, up_rm, lo_rm, survey_date, s
 }
 
 # Main fish_location query...includes carcass locations within time-span three months prior
-get_fish_locations = function(waterbody_id, up_rm, lo_rm, survey_date, species_id) {
-  new_locs = get_new_fish_location(waterbody_id)
+get_fish_locations = function(pool, waterbody_id, up_rm, lo_rm, survey_date, species_id) {
+  new_locs = get_new_fish_location(pool, waterbody_id)
   # Get pre-existing redd locations
-  prev_locs = get_previous_fish_location(waterbody_id, up_rm, lo_rm, survey_date, species_id)
+  prev_locs = get_previous_fish_location(pool, waterbody_id, up_rm, lo_rm, survey_date, species_id)
   fish_locations = bind_rows(new_locs, prev_locs) %>%
     mutate(latitude = round(latitude, 7)) %>%
     mutate(longitude = round(longitude, 7)) %>%
@@ -101,7 +101,7 @@ get_fish_locations = function(waterbody_id, up_rm, lo_rm, survey_date, species_i
 #==========================================================================
 
 # fish_coordinates query
-get_fish_coordinates = function(fish_location_id) {
+get_fish_coordinates = function(pool, fish_location_id) {
   qry = glue("select loc.location_id, lc.location_coordinates_id, ",
              "st_x(st_transform(lc.geom, 4326)) as longitude, ",
              "st_y(st_transform(lc.geom, 4326)) as latitude, ",
@@ -134,7 +134,8 @@ get_fish_coordinates = function(fish_location_id) {
 #==========================================================================
 
 # Redd status
-get_fish_channel_type = function() {
+get_fish_channel_type = function(pool) {
+  req(valid_connection == TRUE)
   qry = glue("select stream_channel_type_id, channel_type_description as channel_type ",
              "from spawning_ground.stream_channel_type_lut ",
              "where obsolete_datetime is null")
@@ -147,7 +148,8 @@ get_fish_channel_type = function() {
 }
 
 # Redd status
-get_fish_orientation_type = function() {
+get_fish_orientation_type = function(pool) {
+  req(valid_connection == TRUE)
   qry = glue("select location_orientation_type_id, orientation_type_description as orientation_type ",
              "from spawning_ground.location_orientation_type_lut ",
              "where obsolete_datetime is null")
@@ -164,7 +166,7 @@ get_fish_orientation_type = function() {
 #========================================================
 
 # Define the insert callback
-fish_location_insert = function(new_fish_location_values) {
+fish_location_insert = function(pool, new_fish_location_values) {
   new_insert_values = new_fish_location_values
   # Generate location_id
   location_id = get_uuid(1L)
@@ -222,7 +224,7 @@ fish_location_insert = function(new_fish_location_values) {
 #==============================================================
 
 # Identify fish_encounter dependencies prior to delete
-get_fish_location_surveys = function(fish_location_id) {
+get_fish_location_surveys = function(pool, fish_location_id) {
   qry = glue("select s.survey_datetime as survey_date, ",
              "s.observer_last_name as observer, loc.location_name as fish_name, ",
              "fe.fish_count, mt.media_type_code as media_type, ",
@@ -250,7 +252,7 @@ get_fish_location_surveys = function(fish_location_id) {
 #========================================================
 
 # Define update callback
-fish_location_update = function(fish_location_edit_values, selected_fish_location_data) {
+fish_location_update = function(pool, fish_location_edit_values, selected_fish_location_data) {
   edit_values = fish_location_edit_values
   # Pull out data for location table
   location_id = edit_values$fish_location_id
@@ -317,7 +319,7 @@ fish_location_update = function(fish_location_edit_values, selected_fish_locatio
 #========================================================
 
 # Identify fish_encounter dependencies prior to delete
-get_fish_location_dependencies = function(fish_location_id) {
+get_fish_location_dependencies = function(pool, fish_location_id) {
   qry = glue("select fd.fish_encounter_id, fd.fish_encounter_datetime as fish_encounter_time, ",
              "fd.fish_count, fs.fish_status_description as fish_status, ",
              "fd.fish_location_id, loc.location_name as fish_name, ",
@@ -350,7 +352,7 @@ get_fish_location_dependencies = function(fish_location_id) {
 #========================================================
 
 # Define delete callback
-fish_location_delete = function(delete_values) {
+fish_location_delete = function(pool, delete_values) {
   fish_location_id = delete_values$fish_location_id
   con = poolCheckout(pool)
   # New function...delete only after all dependencies are removed

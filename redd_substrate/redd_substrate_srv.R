@@ -4,7 +4,8 @@
 
 # Substrate level
 output$substrate_level_select = renderUI({
-  substrate_level_list = get_substrate_level()$substrate_level
+  req(valid_connection == TRUE)
+  substrate_level_list = get_substrate_level(pool)$substrate_level
   substrate_level_list = c("", substrate_level_list)
   selectizeInput("substrate_level_select", label = "substrate_level",
                  choices = substrate_level_list, selected = NULL,
@@ -13,7 +14,8 @@ output$substrate_level_select = renderUI({
 
 # Substrate type
 output$substrate_type_select = renderUI({
-  substrate_type_list = get_substrate_type()$substrate_type
+  req(valid_connection == TRUE)
+  substrate_type_list = get_substrate_type(pool)$substrate_type
   substrate_type_list = c("", substrate_type_list)
   selectizeInput("substrate_type_select", label = "substrate_type",
                  choices = substrate_type_list, selected = NULL,
@@ -34,7 +36,7 @@ output$redd_substrates = renderDT({
   redd_substrate_title = glue("{selected_survey_event_data()$species} redd substrate data for {input$stream_select} on ",
                                "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                                "to {selected_survey_data()$lo_rm}")
-  redd_substrate_data = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id) %>%
+  redd_substrate_data = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(substrate_level, substrate_type, substrate_pct,
            created_dt, created_by, modified_dt, modified_by)
 
@@ -69,7 +71,7 @@ selected_redd_substrate_data = reactive({
   req(input$redd_encounters_rows_selected)
   req(input$redd_substrates_rows_selected)
   req(!is.na(selected_redd_encounter_data()$redd_encounter_id))
-  redd_substrate_data = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id)
+  redd_substrate_data = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id)
   redd_substrate_row = input$redd_substrates_rows_selected
   selected_redd_substrate = tibble(redd_substrate_id = redd_substrate_data$redd_substrate_id[redd_substrate_row],
                                    substrate_level = redd_substrate_data$substrate_level[redd_substrate_row],
@@ -104,7 +106,7 @@ observe({
   req(!is.na(selected_redd_encounter_data()$redd_encounter_id))
   input$insert_redd_substrate
   input$delete_redd_substrate
-  redd_substrate_data = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id)
+  redd_substrate_data = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id)
   if (nrow(redd_substrate_data) >= 4L) {
     shinyjs::disable("substrate_add")
   } else {
@@ -126,7 +128,7 @@ redd_substrate_create = reactive({
   if ( substrate_level_input == "" ) {
     substrate_level_id = NA
   } else {
-    substrate_level_vals = get_substrate_level()
+    substrate_level_vals = get_substrate_level(pool)
     substrate_level_id = substrate_level_vals %>%
       filter(substrate_level == substrate_level_input) %>%
       pull(substrate_level_id)
@@ -136,7 +138,7 @@ redd_substrate_create = reactive({
   if ( substrate_type_input == "" ) {
     substrate_type_id = NA
   } else {
-    substrate_type_vals = get_substrate_type()
+    substrate_type_vals = get_substrate_type(pool)
     substrate_type_id = substrate_type_vals %>%
       filter(substrate_type == substrate_type_input) %>%
       pull(substrate_type_id)
@@ -172,7 +174,7 @@ output$redd_substrate_modal_insert_vals = renderDT({
 observeEvent(input$substrate_add, {
   new_redd_substrate_vals = redd_substrate_create()
   new_level = redd_substrate_create()$substrate_level
-  existing_substrate = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id)
+  existing_substrate = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id)
   old_levels = existing_substrate$substrate_level
   existing_pct = sum(existing_substrate$substrate_pct)
   new_substrate_pct = existing_pct + new_redd_substrate_vals$substrate_pct
@@ -247,13 +249,13 @@ redd_substrate_insert_vals = reactive({
 # Update DB and reload DT
 observeEvent(input$insert_redd_substrate, {
   tryCatch({
-    redd_substrate_insert(redd_substrate_insert_vals())
+    redd_substrate_insert(pool, redd_substrate_insert_vals())
     shinytoastr::toastr_success("New substrate data was added")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_redd_substrate_insert_vals = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id) %>%
+  post_redd_substrate_insert_vals = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(substrate_level, substrate_type, substrate_pct,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_substrate_dt_proxy, post_redd_substrate_insert_vals)
@@ -276,7 +278,7 @@ redd_substrate_edit = reactive({
   if ( substrate_level_input == "" ) {
     substrate_level_id = NA
   } else {
-    substrate_level_vals = get_substrate_level()
+    substrate_level_vals = get_substrate_level(pool)
     substrate_level_id = substrate_level_vals %>%
       filter(substrate_level == substrate_level_input) %>%
       pull(substrate_level_id)
@@ -286,7 +288,7 @@ redd_substrate_edit = reactive({
   if ( substrate_type_input == "" ) {
     substrate_type_id = NA
   } else {
-    substrate_type_vals = get_substrate_type()
+    substrate_type_vals = get_substrate_type(pool)
     substrate_type_id = substrate_type_vals %>%
       filter(substrate_type == substrate_type_input) %>%
       pull(substrate_type_id)
@@ -328,7 +330,7 @@ observeEvent(input$substrate_edit, {
     mutate(substrate_pct = as.integer(substrate_pct)) %>%
     select(substrate_level, substrate_type, substrate_pct)
   new_redd_substrate_vals[] = lapply(new_redd_substrate_vals, set_na)
-  existing_substrate = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id)
+  existing_substrate = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id)
   existing_pct = sum(existing_substrate$substrate_pct) - old_redd_substrate_vals$substrate_pct
   new_substrate_pct = existing_pct + new_redd_substrate_vals$substrate_pct
   new_type = redd_substrate_edit()$substrate_type
@@ -390,13 +392,13 @@ observeEvent(input$substrate_edit, {
 # Update DB and reload DT
 observeEvent(input$save_substrate_edits, {
   tryCatch({
-    redd_substrate_update(redd_substrate_edit())
+    redd_substrate_update(pool, redd_substrate_edit())
     shinytoastr::toastr_success("Substrate data was edited")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  post_redd_substrate_edit_vals = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id) %>%
+  post_redd_substrate_edit_vals = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(substrate_level, substrate_type, substrate_pct,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_substrate_dt_proxy, post_redd_substrate_edit_vals)
@@ -409,7 +411,7 @@ observeEvent(input$save_substrate_edits, {
 # Generate values to show in modal
 output$redd_substrate_modal_delete_vals = renderDT({
   redd_substrate_modal_del_id = selected_redd_substrate_data()$redd_substrate_id
-  redd_substrate_modal_del_vals = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id) %>%
+  redd_substrate_modal_del_vals = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     filter(redd_substrate_id == redd_substrate_modal_del_id) %>%
     select(substrate_level, substrate_type, substrate_pct)
   # Generate table
@@ -456,13 +458,13 @@ observeEvent(input$substrate_delete, {
 # Update DB and reload DT
 observeEvent(input$delete_redd_substrate, {
   tryCatch({
-    redd_substrate_delete(selected_redd_substrate_data())
+    redd_substrate_delete(pool, selected_redd_substrate_data())
     shinytoastr::toastr_success("Substrate data was deleted")
   }, error = function(e) {
     shinytoastr::toastr_error(title = "Database error", conditionMessage(e))
   })
   removeModal()
-  redd_substrates_after_delete = get_redd_substrate(selected_redd_encounter_data()$redd_encounter_id) %>%
+  redd_substrates_after_delete = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(substrate_level, substrate_type, substrate_pct,
            created_dt, created_by, modified_dt, modified_by)
   replaceData(redd_substrate_dt_proxy, redd_substrates_after_delete)

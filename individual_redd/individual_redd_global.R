@@ -1,6 +1,6 @@
 
 # Main individual_redd query
-get_individual_redd = function(redd_encounter_id) {
+get_individual_redd = function(pool, redd_encounter_id) {
   qry = glue("select ir.individual_redd_id, rh.redd_shape_description as redd_shape, ",
              "rd.dewatered_type_description as dewatered_type, ",
              "ir.percent_redd_visible as pct_visible, ",
@@ -40,7 +40,7 @@ get_individual_redd = function(redd_encounter_id) {
 #==========================================================================
 
 # Redd shape
-get_redd_shape = function() {
+get_redd_shape = function(pool) {
   qry = glue("select redd_shape_id, redd_shape_description as redd_shape ",
              "from spawning_ground.redd_shape_lut ",
              "where obsolete_datetime is null")
@@ -53,7 +53,7 @@ get_redd_shape = function() {
 }
 
 # Dewatered type
-get_dewatered_type = function() {
+get_dewatered_type = function(pool) {
   qry = glue("select redd_dewatered_type_id, dewatered_type_description as dewatered_type ",
              "from spawning_ground.redd_dewatered_type_lut ",
              "where obsolete_datetime is null")
@@ -70,7 +70,7 @@ get_dewatered_type = function() {
 #========================================================
 
 # Define the insert callback
-individual_redd_insert = function(new_individual_redd_values) {
+individual_redd_insert = function(pool, new_individual_redd_values) {
   new_insert_values = new_individual_redd_values
   # Pull out data
   redd_encounter_id = new_insert_values$redd_encounter_id
@@ -123,7 +123,7 @@ individual_redd_insert = function(new_individual_redd_values) {
 #========================================================
 
 # Define update callback
-individual_redd_update = function(individual_redd_edit_values) {
+individual_redd_update = function(pool, individual_redd_edit_values) {
   edit_values = individual_redd_edit_values
   # Pull out data
   individual_redd_id = edit_values$individual_redd_id
@@ -177,7 +177,7 @@ individual_redd_update = function(individual_redd_edit_values) {
 #========================================================
 
 # Define delete callback
-individual_redd_delete = function(delete_values) {
+individual_redd_delete = function(pool, delete_values) {
   individual_redd_id = delete_values$individual_redd_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(

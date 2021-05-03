@@ -5,8 +5,9 @@
 # wria_select
 output$wria_select = renderUI({
   req(valid_connection == TRUE)
-  wria_list = get_wrias()
-  selectizeInput("wria_select", label = NULL,
+  wria_list = get_wrias(pool)
+  selectizeInput("wria_select",
+                 label = "Select WRIA",
                  choices = wria_list,
                  selected = "23 Upper Chehalis",
                  width = "100%")
@@ -18,9 +19,10 @@ output$wria_select = renderUI({
 
 # Get streams in wria
 wria_streams = reactive({
+  req(valid_connection == TRUE)
   req(input$wria_select)
   chosen_wria = substr(input$wria_select, 1, 2)
-  streams = get_streams(chosen_wria) %>%
+  streams = get_streams(pool, chosen_wria) %>%
     mutate(stream_label = if_else(is.na(stream_name) & !is.na(waterbody_name),
                                   waterbody_name, stream_name)) %>%
     mutate(stream_label = paste0(stream_name, ": ", llid)) %>%
@@ -41,17 +43,21 @@ stream_list = reactive({
 
 # stream_select
 output$stream_select = renderUI({
-  selectizeInput("stream_select", label = NULL,
-                 choices = stream_list(), selected = stream_list()[1],
+  req(valid_connection == TRUE)
+  selectizeInput(inputId = "stream_select",
+                 label = "Select stream (or click on map)",
+                 choices = stream_list(),
+                 selected = stream_list()[1],
                  width = "100%")
 })
 
 #========================================================
-# Get initial set of years for selected stream
+# Get initial set of dates for selected stream
 #========================================================
 
 # Filter to selected stream
 waterbody_id = eventReactive(input$stream_select, {
+  req(valid_connection == TRUE)
   req(input$stream_select)
   stream_data = wria_streams() %>%
     st_drop_geometry() %>%
@@ -62,22 +68,27 @@ waterbody_id = eventReactive(input$stream_select, {
   return(stream_data)
 })
 
-waterbody_survey_years = eventReactive(input$stream_select, {
-  year_list = get_data_years(waterbody_id())
-  if (length(year_list) == 0 ) {
-    year_list = "No surveys"
+waterbody_survey_dates = eventReactive(input$stream_select, {
+  req(valid_connection == TRUE)
+  date_list = get_survey_dates(pool, waterbody_id())
+  if (length(date_list) == 0 ) {
+    date_list = NULL
   } else {
-    year_list = year_list
+    date_list = date_list
   }
-  return(year_list)
+  return(date_list)
 })
 
-# year_select
-output$year_select = renderUI({
-  year_list = waterbody_survey_years()
-  selectizeInput("year_select", label = NULL,
-                 choices = year_list, selected = NULL,
-                 width = "100%")
+# Date range select
+output$when_date_range = renderUI({
+  req(waterbody_survey_dates())
+  dateRangeInput(inputId = "when_date_range",
+                 label = "Date range for surveys",
+                 width = "100%",
+                 start = waterbody_survey_dates()[1],
+                 end = waterbody_survey_dates()[1],
+                 format = "mm/dd/yyyy",
+                 startview = "year")
 })
 
 #========================================================
@@ -85,15 +96,17 @@ output$year_select = renderUI({
 #========================================================
 
 selected_wria = reactive({
+  req(valid_connection == TRUE)
   req(input$wria_select)
   chosen_wria = substr(input$wria_select, 1, 2)
-  zoom_wria = get_wria_centroid(chosen_wria) %>%
+  zoom_wria = get_wria_centroid(pool, chosen_wria) %>%
     select(wria_name, lat, lon)
   return(zoom_wria)
 })
 
 # Output leaflet bidn map
 output$stream_map <- renderLeaflet({
+  req(valid_connection == TRUE)
   req(input$wria_select)
   m = leaflet() %>%
     setView(lng = selected_wria()$lon[1],
@@ -171,17 +184,10 @@ observeEvent(input$stream_map_shape_click, {
 
 # Get list of river mile end_points for waterbody_id
 rm_list = reactive({
+  req(valid_connection == TRUE)
   wb_id = waterbody_id()
-  stream_rms = get_end_points(waterbody_id())
+  stream_rms = get_end_points(pool, waterbody_id())
   return(stream_rms)
-})
-
-# Generate year values as a reactive
-year_vals = reactive({
-  req(input$year_select)
-  req(!input$year_select == "No surveys")
-  year_vals = input$year_select
-  return(year_vals)
 })
 
 #========================================================
@@ -190,8 +196,9 @@ year_vals = reactive({
 
 # Get centroid of stream for setting view of fish_map
 selected_stream_centroid = reactive({
+  req(valid_connection == TRUE)
   req(input$stream_select)
-  stream_centroid_coords = get_stream_centroid(waterbody_id())
+  stream_centroid_coords = get_stream_centroid(pool, waterbody_id())
   return(stream_centroid_coords)
 })
 
@@ -201,8 +208,9 @@ selected_stream_centroid = reactive({
 
 # Get centroid of stream for setting view of fish_map
 selected_stream_bounds = reactive({
+  req(valid_connection == TRUE)
   req(input$stream_select)
-  stream_bounds = get_stream_bounds(waterbody_id())
+  stream_bounds = get_stream_bounds(pool, waterbody_id())
   return(stream_bounds)
 })
 
@@ -212,9 +220,10 @@ selected_stream_bounds = reactive({
 
 # Reactive to pull out wria_id
 wria_id = reactive({
+  req(valid_connection == TRUE)
   req(input$wria_select)
   chosen_wria = substr(input$wria_select, 1, 2)
-  get_streams(chosen_wria) %>%
+  get_streams(pool, chosen_wria) %>%
     st_drop_geometry() %>%
     mutate(wria_id = tolower(wria_id)) %>%
     select(wria_id) %>%

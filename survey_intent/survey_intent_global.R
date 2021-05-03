@@ -1,5 +1,5 @@
 # Main survey intent query
-get_survey_intent = function(survey_id) {
+get_survey_intent = function(pool, survey_id) {
   qry = glue("select si.survey_intent_id, sp.common_name as species, ",
              "ct.count_type_code as count_type, si.created_datetime as created_date, ",
              "si.created_by, si.modified_datetime as modified_date, si.modified_by ",
@@ -26,7 +26,7 @@ get_survey_intent = function(survey_id) {
 #==========================================================================
 
 # Area surveyed
-get_intent_species = function() {
+get_intent_species = function(pool) {
   qry = glue("select species_id, common_name as species ",
              "from spawning_ground.species_lut ",
              "where obsolete_datetime is null")
@@ -39,7 +39,7 @@ get_intent_species = function() {
 }
 
 # Abundance
-get_count_type = function() {
+get_count_type = function(pool) {
   qry = glue("select count_type_id, count_type_code as count_type ",
              "from spawning_ground.count_type_lut ",
              "where obsolete_datetime is null")
@@ -75,7 +75,7 @@ dup_survey_intent = function(new_survey_intent_vals, existing_survey_intent_vals
 #========================================================
 
 # Define the insert callback
-survey_intent_insert = function(new_intent_values) {
+survey_intent_insert = function(pool, new_intent_values) {
   new_intent_values = new_intent_values
   # Pull out data
   survey_id = new_intent_values$survey_id
@@ -103,7 +103,7 @@ survey_intent_insert = function(new_intent_values) {
 #========================================================
 
 # Define update callback
-survey_intent_update = function(intent_edit_values) {
+survey_intent_update = function(pool, intent_edit_values) {
   edit_values = intent_edit_values
   # Pull out data
   survey_intent_id = edit_values$survey_intent_id
@@ -132,7 +132,7 @@ survey_intent_update = function(intent_edit_values) {
 #========================================================
 
 # Define delete callback
-survey_intent_delete = function(delete_values) {
+survey_intent_delete = function(pool, delete_values) {
   survey_intent_id = delete_values$survey_intent_id
   con = poolCheckout(pool)
   delete_result = dbSendStatement(
