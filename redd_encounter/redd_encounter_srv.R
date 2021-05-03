@@ -49,6 +49,7 @@ output$redd_encounters = renderDT({
                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
   redd_encounter_data = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
+    mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name)) %>%
     select(redd_encounter_dt, redd_status, redd_count, redd_name, redd_comment,
            created_dt, created_by, modified_dt, modified_by)
 
@@ -89,7 +90,8 @@ selected_redd_encounter_data = reactive({
   req(input$survey_events_rows_selected)
   req(input$redd_encounters_rows_selected)
   req(!is.na(selected_survey_event_data()$survey_event_id))
-  redd_encounter_data = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id)
+  redd_encounter_data = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
+    mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name))
   redd_encounter_row = input$redd_encounters_rows_selected
   selected_redd_encounter = tibble(redd_encounter_id = redd_encounter_data$redd_encounter_id[redd_encounter_row],
                                    redd_encounter_time = redd_encounter_data$redd_encounter_time[redd_encounter_row],
@@ -338,6 +340,8 @@ observeEvent(input$redd_enc_edit, {
   old_redd_encounter_vals[] = lapply(old_redd_encounter_vals, set_na)
   new_redd_encounter_vals = redd_encounter_edit() %>%
     mutate(redd_count = as.integer(redd_count)) %>%
+    mutate(redd_name = as.character(redd_name)) %>%
+    mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name)) %>%
     mutate(redd_encounter_dt = format(redd_encounter_dt, "%H:%M")) %>%
     select(redd_encounter_dt, redd_status, redd_count,
            redd_name, redd_comment)

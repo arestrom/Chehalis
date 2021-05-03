@@ -1,6 +1,6 @@
 
 # Main redd_encounter query
-get_reach_point = function(waterbody_id) {
+get_reach_point = function(pool, waterbody_id) {
   qry = glue("select loc.location_id, ",
              "lc.location_coordinates_id, ",
              "loc.river_mile_measure as river_mile, ",
@@ -43,7 +43,7 @@ get_reach_point = function(waterbody_id) {
 #==========================================================================
 
 # Location type....Some bios distinguish section breaks from reach end points
-get_location_type = function() {
+get_location_type = function(pool) {
   qry = glue("select location_type_id, location_type_description as reach_point_type ",
              "from spawning_ground.location_type_lut ",
              "where obsolete_datetime is null ",
@@ -61,7 +61,7 @@ get_location_type = function() {
 #========================================================
 
 # Define the insert callback
-reach_point_insert = function(new_reach_point_values) {
+reach_point_insert = function(pool, new_reach_point_values) {
   new_insert_values = new_reach_point_values
   # Generate location_id
   location_id = get_uuid(1L)
@@ -134,7 +134,7 @@ reach_point_insert = function(new_reach_point_values) {
 #==============================================================
 
 # Identify reach_point dependencies prior to delete
-get_reach_point_surveys = function(location_id) {
+get_reach_point_surveys = function(pool, location_id) {
   qry = glue("select s.survey_datetime as survey_date, ",
              "locu.river_mile_measure as upper_river_mile, ",
              "locl.river_mile_measure as lower_river_mile, ",
@@ -157,7 +157,7 @@ get_reach_point_surveys = function(location_id) {
 #========================================================
 
 # Define update callback
-reach_point_update = function(reach_point_edit_values, selected_reach_point_data) {
+reach_point_update = function(pool, reach_point_edit_values, selected_reach_point_data) {
   edit_values = reach_point_edit_values
   # Pull out data for location table
   location_id = edit_values$location_id
@@ -246,7 +246,7 @@ reach_point_update = function(reach_point_edit_values, selected_reach_point_data
 #========================================================
 
 # Identify fish_encounter dependencies prior to delete
-get_reach_point_dependencies = function(location_id) {
+get_reach_point_dependencies = function(pool, location_id) {
   qry = glue("select ",
              "count(fp.fish_passage_feature_id) as fish_passage_feature, ",
              "count(fce.fish_capture_event_id) as fish_capture_event, ",
@@ -279,7 +279,7 @@ get_reach_point_dependencies = function(location_id) {
 #========================================================
 
 # Define delete callback
-reach_point_delete = function(delete_values) {
+reach_point_delete = function(pool, delete_values) {
   location_id = delete_values$location_id
   # Checkout a connection
   con = poolCheckout(pool)

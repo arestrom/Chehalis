@@ -12,7 +12,7 @@ ui = dashboardPage(
                 br(),
                 box(
                   title = "Select Stream and survey date range",
-                  loadingState(),
+                  #loadingState(),
                   width = 12,
                   height = "800px",
                   closable = FALSE,
@@ -26,7 +26,8 @@ ui = dashboardPage(
                     icon = shiny::icon("bars"),
                     wria_stream_ui
                   ),
-                  leafletOutput("stream_map", height = "800px")
+                  leafletOutput("stream_map", height = "800px") %>%
+                    shinycssloaders::withSpinner(., size = 0.5)
                 )
               )
       ),
@@ -121,7 +122,7 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE,
+                  collapsed = TRUE,
                   redd_location_ui
                 ),
                 box(
@@ -139,8 +140,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = TRUE
-                  #individual_redd_ui
+                  collapsed = TRUE,
+                  individual_redd_ui
                 ),
                 box(
                   title = "Redd substrate",
@@ -148,8 +149,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = TRUE
-                  #redd_substrate_ui
+                  collapsed = TRUE,
+                  redd_substrate_ui
                 )
               )
       ),
@@ -163,8 +164,8 @@ ui = dashboardPage(
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE
-                  #reach_point_ui
+                  collapsed = FALSE,
+                  reach_point_ui
                 )
               )
       ),

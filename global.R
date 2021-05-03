@@ -134,8 +134,9 @@ library(stringi)
 library(keyring)
 #library(reactlog)
 
-# Keep connections pane from opening
-options("connectionObserver" = NULL)
+# Options
+devmode()
+#options("connectionObserver" = NULL)
 #options(shiny.reactlog = TRUE)
 #reactlogShow()
 
@@ -166,12 +167,12 @@ source("redd_location/redd_location_ui.R")
 source("redd_location/redd_location_global.R")
 source("redd_encounter/redd_encounter_ui.R")
 source("redd_encounter/redd_encounter_global.R")
-# source("individual_redd/individual_redd_ui.R")
-# source("individual_redd/individual_redd_global.R")
-# source("redd_substrate/redd_substrate_ui.R")
-# source("redd_substrate/redd_substrate_global.R")
-# source("reach_point/reach_point_ui.R")
-# source("reach_point/reach_point_global.R")
+source("individual_redd/individual_redd_ui.R")
+source("individual_redd/individual_redd_global.R")
+source("redd_substrate/redd_substrate_ui.R")
+source("redd_substrate/redd_substrate_global.R")
+source("reach_point/reach_point_ui.R")
+source("reach_point/reach_point_global.R")
 # # source("mobile_import/mobile_import_ui.R")
 # # source("mobile_import/mobile_import_global.R")
 source("connect/connect_ui.R")
@@ -192,7 +193,7 @@ get_credentials = function(credential_label = NULL, keyring = NULL) {
   })
 }
 
-# Test credentials...return boolean
+# Check credentials on local instance...return boolean
 valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
                                      host = "localhost",
                                      port = "5432",
@@ -200,7 +201,7 @@ valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
                                      password = get_credentials("pg_pwd_local"),
                                      dbname = get_credentials("pg_fish_local_db"))
 
-# Get pooled connection to AWS prod instance if credentials valid
+# Get pooled connection to local instance if credentials valid
 if ( valid_connection == TRUE ) {
   pool = pool::dbPool(RPostgres::Postgres(),
                       dbname = get_credentials("pg_fish_local_db"),
@@ -211,7 +212,7 @@ if ( valid_connection == TRUE ) {
 }
 
 
-# # Test credentials...return boolean
+# # Check credentials...return boolean
 # valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
 #                                      host = get_credentials("pg_host_prod"),
 #                                      port = get_credentials("pg_port_prod"),
