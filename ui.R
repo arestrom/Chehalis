@@ -258,15 +258,21 @@ ui = dashboardPage(
       ),
       tabItem(tabName = "about",
               fluidRow(
-                br(),
-                br(),
-                box(
-                  title = "About (ToDo)",
-                  width = 12,
-                  closable = FALSE,
-                  collapsible = TRUE,
-                  solidHeader = FALSE,
-                  collapsed = FALSE
+                column(width = 2,
+                       br(),
+                       br(),
+                       br(),
+                       img(src = "steelhead.png", width = "85%"),
+                       br(),
+                       br(),
+                       includeMarkdown("www/credits.Rmd")
+                ),
+                column(offset = 1,
+                       width = 7,
+                       br(),
+                       br(),
+                       br(),
+                       includeMarkdown("www/about.Rmd")
                 )
               )
       )
