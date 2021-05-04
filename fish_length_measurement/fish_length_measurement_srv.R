@@ -6,7 +6,7 @@ output$length_type_select = renderUI({
   req(valid_connection == TRUE)
   length_type_list = get_length_type(pool)$length_type
   length_type_list = c("", length_type_list)
-  selectizeInput("length_type_select", label = "length_type",
+  selectizeInput("length_type_select", label = "Length Type",
                  choices = length_type_list, selected = "Fork length",
                  width = "250px")
 })
@@ -23,14 +23,17 @@ output$length_measurements = renderDT({
   req(input$fish_encounters_rows_selected)
   req(input$individual_fishes_rows_selected)
   req(!is.na(selected_individual_fish_data()$individual_fish_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   length_measurements_title = glue("{selected_survey_event_data()$species} data for {input$stream_select} on ",
-                                   "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                                   "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                                    "to {selected_survey_data()$lo_rm}")
   length_measurement_data = get_length_measurements(pool, selected_individual_fish_data()$individual_fish_id) %>%
     select(length_type, length_cm, created_dt, created_by, modified_dt, modified_by)
 
   # Generate table
   datatable(length_measurement_data,
+            colnames = c("Length Type", "Length (cm)", "Created Date", "Created By",
+                         "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,

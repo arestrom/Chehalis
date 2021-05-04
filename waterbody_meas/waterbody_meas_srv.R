@@ -13,8 +13,9 @@ output$waterbody_measure = renderDT({
   req(input$tabs == "data_entry")
   req(input$surveys_rows_selected)
   req(!is.na(selected_survey_data()$survey_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   waterbody_meas_title = glue("Water measurements for {input$stream_select} on ",
-                              "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                              "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
   waterbody_meas_data = get_waterbody_meas(pool, selected_survey_data()$survey_id) %>%
     select(clarity_type, clarity_meter, flow_cfs, start_temperature, start_tmp_time = start_tmp_dt,

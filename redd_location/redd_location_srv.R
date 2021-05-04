@@ -7,7 +7,7 @@ output$redd_channel_type_select = renderUI({
   req(valid_connection == TRUE)
   channel_type_list = get_redd_channel_type(pool)$channel_type
   channel_type_list = c("", channel_type_list)
-  selectizeInput("redd_channel_type_select", label = "channel_type",
+  selectizeInput("redd_channel_type_select", label = "Stream Channel Type",
                  choices = channel_type_list, selected = NULL,
                  width = "250px")
 })
@@ -16,7 +16,7 @@ output$redd_orientation_type_select = renderUI({
   req(valid_connection == TRUE)
   orientation_type_list = get_redd_orientation_type(pool)$orientation_type
   orientation_type_list = c("", orientation_type_list)
-  selectizeInput("redd_orientation_type_select", label = "orientation_type",
+  selectizeInput("redd_orientation_type_select", label = "Orientation (relative to flow)",
                  choices = orientation_type_list, selected = NULL,
                  width = "275px")
 })
@@ -49,6 +49,10 @@ output$redd_locations = renderDT({
 
   # Generate table
   datatable(redd_location_data,
+            colnames = c("Survey Date", "Species", "Redd Name", "Redd Status", "Channel Type",
+                         "Orientation", "Latitude", "Longitude", "Horiz. Accuracy",
+                         "Location Description", "Created Date", "Created By",
+                         "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'Blftp',
                            pageLength = 5,

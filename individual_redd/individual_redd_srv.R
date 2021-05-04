@@ -7,7 +7,7 @@ output$redd_shape_select = renderUI({
   req(valid_connection == TRUE)
   redd_shape_list = get_redd_shape(pool)$redd_shape
   redd_shape_list = c("", redd_shape_list)
-  selectizeInput("redd_shape_select", label = "redd_shape",
+  selectizeInput("redd_shape_select", label = "Redd Shape",
                  choices = redd_shape_list, selected = NULL,
                  width = "125px")
 })
@@ -17,7 +17,7 @@ output$dewatered_type_select = renderUI({
   req(valid_connection == TRUE)
   dewatered_type_list = get_dewatered_type(pool)$dewatered_type
   dewatered_type_list = c("", dewatered_type_list)
-  selectizeInput("dewatered_type_select", label = "dewatered_type",
+  selectizeInput("dewatered_type_select", label = "Dewatered Type",
                  choices = dewatered_type_list, selected = NULL,
                  width = "200px")
 })
@@ -33,8 +33,9 @@ output$individual_redds = renderDT({
   req(input$survey_events_rows_selected)
   req(input$redd_encounters_rows_selected)
   req(!is.na(selected_redd_encounter_data()$redd_encounter_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   individual_redd_title = glue("{selected_survey_event_data()$species} individual redd data for {input$stream_select} on ",
-                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                               "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                                "to {selected_survey_data()$lo_rm}")
   individual_redd_data = get_individual_redd(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(redd_shape, dewatered_type, pct_visible, redd_length_m, redd_width_m,
@@ -43,6 +44,9 @@ output$individual_redds = renderDT({
 
   # Generate table
   datatable(individual_redd_data,
+            colnames = c("Redd Shape", "Dewatered Type", "Percent Visible", "Redd Length", "Redd Width",
+                         "Redd Depth", "Tailspill Height", "Percent Superimposed", "Percent Degraded",
+                         "Superimposed Redd", "Created Date", "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,

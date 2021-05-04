@@ -6,7 +6,7 @@ output$redd_status_select = renderUI({
   req(valid_connection == TRUE)
   redd_status_list = get_redd_status(pool)$redd_status
   redd_status_list = c("", redd_status_list)
-  selectizeInput("redd_status_select", label = "redd_status",
+  selectizeInput("redd_status_select", label = "Redd Status",
                  choices = redd_status_list, selected = NULL,
                  width = "250px")
 })
@@ -30,7 +30,7 @@ current_redd_locations = reactive({
 output$redd_name_select = renderUI({
   redd_name_list = current_redd_locations()$redd_name
   redd_name_list = c("no location data", redd_name_list)
-  selectizeInput("redd_name_select", label = "redd_name",
+  selectizeInput("redd_name_select", label = "Redd Name",
                  choices = redd_name_list, selected = NULL,
                  width = "200px")
 })
@@ -45,8 +45,9 @@ output$redd_encounters = renderDT({
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   req(!is.na(selected_survey_event_data()$survey_event_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   redd_encounter_title = glue("{selected_survey_event_data()$species} redd data for {input$stream_select} on ",
-                              "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                              "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
   redd_encounter_data = get_redd_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     mutate(redd_name = if_else(is.na(redd_name), "no location data", redd_name)) %>%
@@ -55,6 +56,8 @@ output$redd_encounters = renderDT({
 
   # Generate table
   datatable(redd_encounter_data,
+            colnames = c("Encounter Time", "Redd Status", "Redd Count", "Redd Name", "Redd Comment",
+                         "Created Date", "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'Blftp',
                            pageLength = 5,

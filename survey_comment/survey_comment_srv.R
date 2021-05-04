@@ -93,8 +93,9 @@ output$weather_type_select = renderUI({
 output$survey_comments = renderDT({
   req(input$tabs == "data_entry")
   req(input$surveys_rows_selected)
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   survey_comment_title = glue("Survey comments for {input$stream_select} on ",
-                              "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                              "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
   survey_comment_data = get_survey_comment(pool, selected_survey_data()$survey_id) %>%
     select(area_surveyed, abundance_condition, stream_condition,

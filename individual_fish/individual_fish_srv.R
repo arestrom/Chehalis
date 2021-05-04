@@ -6,7 +6,7 @@ output$fish_condition_select = renderUI({
   req(valid_connection == TRUE)
   fish_condition_list = get_fish_condition(pool)$fish_condition
   fish_condition_list = c("", fish_condition_list)
-  selectizeInput("fish_condition_select", label = "fish_condition",
+  selectizeInput("fish_condition_select", label = "Fish Condition",
                  choices = fish_condition_list, selected = "No data",
                  width = "150px")
 })
@@ -15,7 +15,7 @@ output$fish_trauma_select = renderUI({
   req(valid_connection == TRUE)
   fish_trauma_list = get_fish_trauma(pool)$fish_trauma
   fish_trauma_list = c("", fish_trauma_list)
-  selectizeInput("fish_trauma_select", label = "fish_trauma",
+  selectizeInput("fish_trauma_select", label = "Fish Trauma",
                  choices = fish_trauma_list, selected = "No data",
                  width = "150px")
 })
@@ -24,7 +24,7 @@ output$gill_condition_select = renderUI({
   req(valid_connection == TRUE)
   gill_condition_list = get_gill_condition(pool)$gill_condition
   gill_condition_list = c("", gill_condition_list)
-  selectizeInput("gill_condition_select", label = "gill_condition",
+  selectizeInput("gill_condition_select", label = "Gill Condition",
                  choices = gill_condition_list, selected = "No data",
                  width = "200px")
 })
@@ -33,7 +33,7 @@ output$spawn_condition_select = renderUI({
   req(valid_connection == TRUE)
   spawn_condition_list = get_spawn_condition(pool)$spawn_condition
   spawn_condition_list = c("", spawn_condition_list)
-  selectizeInput("spawn_condition_select", label = "spawn_condition",
+  selectizeInput("spawn_condition_select", label = "Spawn Condition",
                  choices = spawn_condition_list, selected = "No data",
                  width = "200px")
 })
@@ -42,7 +42,7 @@ output$age_code_select = renderUI({
   req(valid_connection == TRUE)
   age_code_list = get_age_code(pool)$age_code
   age_code_list = c("", age_code_list)
-  selectizeInput("age_code_select", label = "age_code",
+  selectizeInput("age_code_select", label = "Age Code",
                  choices = age_code_list, selected = "No data",
                  width = "150px")
 })
@@ -51,7 +51,7 @@ output$cwt_result_select = renderUI({
   req(valid_connection == TRUE)
   cwt_result_list = get_cwt_result(pool)$cwt_result
   cwt_result_list = c("", cwt_result_list)
-  selectizeInput("cwt_result_select", label = "cwt_result",
+  selectizeInput("cwt_result_select", label = "CWT Result",
                  choices = cwt_result_list, selected = "Not applicable",
                  width = "130px")
 })
@@ -67,8 +67,9 @@ output$individual_fishes = renderDT({
   req(input$survey_events_rows_selected)
   req(input$fish_encounters_rows_selected)
   req(!is.na(selected_fish_encounter_data()$fish_encounter_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   individual_fish_title = glue("{selected_survey_event_data()$species} data for {input$stream_select} on ",
-                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                               "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                                "to {selected_survey_data()$lo_rm}")
   individual_fish_data = get_individual_fish(pool, selected_fish_encounter_data()$fish_encounter_id) %>%
     select(fish_condition, fish_trauma, gill_condition, spawn_condition, fish_sample_num, scale_card_num,
@@ -78,6 +79,11 @@ output$individual_fishes = renderDT({
 
   # Generate table
   datatable(individual_fish_data,
+            colnames = c("Fish Condition", "Fish Trauma", "Gill Condition", "Spawn Condition",
+                         "Fish Sample Number", "Scale Card Number", "Scale Pos. Number", "Age Code",
+                         "Snout Sample Number", "CWT Tag Code", "CWT Result", "Genetic Sample Number",
+                         "Otolith Sample Number", "Pct. Eggs", "Eggs (gram)", "Eggs (number)",
+                         "Fish Comment", "Created Date", "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,

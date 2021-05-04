@@ -21,7 +21,7 @@ current_fish_locations = reactive({
 output$fish_name_select = renderUI({
   fish_name_list = current_fish_locations()$fish_name
   fish_name_list = c("no location data", fish_name_list)
-  selectizeInput("fish_name_select", label = "fish_name",
+  selectizeInput("fish_name_select", label = "Fish Name",
                  choices = fish_name_list, selected = NULL,
                  width = "125px")
 })
@@ -30,7 +30,7 @@ output$fish_status_select = renderUI({
   req(valid_connection == TRUE)
   fish_status_list = get_fish_status(pool)$fish_status
   fish_status_list = c("", fish_status_list)
-  selectizeInput("fish_status_select", label = "fish_status",
+  selectizeInput("fish_status_select", label = "Fish Status",
                  choices = fish_status_list, selected = NULL,
                  width = "75px")
 })
@@ -39,7 +39,7 @@ output$sex_select = renderUI({
   req(valid_connection == TRUE)
   sex_list = get_sex(pool)$sex
   sex_list = c("", sex_list)
-  selectizeInput("sex_select", label = "fish_sex",
+  selectizeInput("sex_select", label = "Sex",
                  choices = sex_list, selected = "Not applicable",
                  width = "115px")
 })
@@ -48,7 +48,7 @@ output$maturity_select = renderUI({
   req(valid_connection == TRUE)
   maturity_list = get_maturity(pool)$maturity
   maturity_list = c("", maturity_list)
-  selectizeInput("maturity_select", label = "maturity",
+  selectizeInput("maturity_select", label = "Maturity",
                  choices = maturity_list, selected = "Not applicable",
                  width = "115px")
 })
@@ -57,7 +57,7 @@ output$origin_select = renderUI({
   req(valid_connection == TRUE)
   origin_list = get_origin(pool)$origin
   origin_list = c("", origin_list)
-  selectizeInput("origin_select", label = "origin",
+  selectizeInput("origin_select", label = "Origin",
                  choices = origin_list, selected = "Unknown",
                  width = "100px")
 })
@@ -66,7 +66,7 @@ output$cwt_status_select = renderUI({
   req(valid_connection == TRUE)
   cwt_status_list = get_cwt_status(pool)$cwt_status
   cwt_status_list = c("", cwt_status_list)
-  selectizeInput("cwt_status_select", label = "cwt_status",
+  selectizeInput("cwt_status_select", label = "CWT Status",
                  choices = cwt_status_list, selected = "Not applicable",
                  width = "210px")
 })
@@ -75,7 +75,7 @@ output$clip_status_select = renderUI({
   req(valid_connection == TRUE)
   clip_status_list = get_clip_status(pool)$clip_status
   clip_status_list = c("", clip_status_list)
-  selectizeInput("clip_status_select", label = "clip_status",
+  selectizeInput("clip_status_select", label = "Clip Status",
                  choices = clip_status_list, selected = "Not applicable",
                  width = "210px")
 })
@@ -84,14 +84,14 @@ output$fish_behavior_select = renderUI({
   req(valid_connection == TRUE)
   fish_behavior_list = get_fish_behavior(pool)$fish_behavior
   fish_behavior_list = c("", fish_behavior_list)
-  selectizeInput("fish_behavior_select", label = "fish_behavior",
+  selectizeInput("fish_behavior_select", label = "Fish Behavior",
                  choices = fish_behavior_list, selected = NULL,
                  width = "115px")
 })
 
 output$prev_counted_select = renderUI({
   prev_counted_list = c("No", "Yes")
-  selectizeInput("prev_counted_select", label = "prev_counted",
+  selectizeInput("prev_counted_select", label = "Prev. Counted?",
                  choices = prev_counted_list, selected = "No",
                  width = "90px")
 })
@@ -106,8 +106,9 @@ output$fish_encounters = renderDT({
   req(input$surveys_rows_selected)
   req(input$survey_events_rows_selected)
   req(!is.na(selected_survey_event_data()$survey_event_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   fish_encounter_title = glue("{selected_survey_event_data()$species} data for {input$stream_select} on ",
-                              "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                              "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                               "to {selected_survey_data()$lo_rm}")
   fish_encounter_data = get_fish_encounter(pool, selected_survey_event_data()$survey_event_id) %>%
     select(fish_encounter_dt, fish_count, fish_status, fish_name, sex, maturity, origin, cwt_status,
@@ -116,6 +117,9 @@ output$fish_encounters = renderDT({
 
   # Generate table
   datatable(fish_encounter_data,
+            colnames = c("Encounter Time", "Fish Count", "Fish Status", "Fish Name", "Sex", "Maturity",
+                         "Origin", "CWT Status", "Clip Status", "Fish Behavior", "Prev. Counted",
+                         "Created Date", "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,

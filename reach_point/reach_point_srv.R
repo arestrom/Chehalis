@@ -7,7 +7,7 @@ output$reach_point_type_select = renderUI({
   req(valid_connection == TRUE)
   reach_point_type_list = get_location_type(pool)$reach_point_type
   reach_point_type_list = c("", reach_point_type_list)
-  selectizeInput("reach_point_type_select", label = "reach_point_type",
+  selectizeInput("reach_point_type_select", label = "Endpoint Type",
                  choices = reach_point_type_list, selected = "Reach boundary point",
                  width = "175px")
 })
@@ -29,6 +29,9 @@ output$reach_points = renderDT({
 
   # Generate table
   datatable(reach_point_data,
+            colnames = c("River Mile", "Endpoint Type", "Endpoint Code", "Endpoint Name", "Latitude",
+                         "Longitude", "Horiz. Accuracy", "Endpoint Description", "Created Date",
+                         "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 10,

@@ -21,8 +21,9 @@ output$intent_count_type_select = renderUI({
 output$survey_intents = renderDT({
   req(input$tabs == "data_entry")
   req(input$surveys_rows_selected)
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   survey_intent_title = glue("Survey intent for {input$stream_select} on ",
-                             "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                             "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                              "to {selected_survey_data()$lo_rm}")
   survey_intent_data = get_survey_intent(pool, selected_survey_data()$survey_id) %>%
     select(species, count_type, created_dt, created_by, modified_dt, modified_by)

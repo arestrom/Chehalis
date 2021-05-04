@@ -7,7 +7,7 @@ output$substrate_level_select = renderUI({
   req(valid_connection == TRUE)
   substrate_level_list = get_substrate_level(pool)$substrate_level
   substrate_level_list = c("", substrate_level_list)
-  selectizeInput("substrate_level_select", label = "substrate_level",
+  selectizeInput("substrate_level_select", label = "Substrate Level",
                  choices = substrate_level_list, selected = NULL,
                  width = "150px")
 })
@@ -17,7 +17,7 @@ output$substrate_type_select = renderUI({
   req(valid_connection == TRUE)
   substrate_type_list = get_substrate_type(pool)$substrate_type
   substrate_type_list = c("", substrate_type_list)
-  selectizeInput("substrate_type_select", label = "substrate_type",
+  selectizeInput("substrate_type_select", label = "Substrate Type",
                  choices = substrate_type_list, selected = NULL,
                  width = "150px")
 })
@@ -33,8 +33,9 @@ output$redd_substrates = renderDT({
   req(input$survey_events_rows_selected)
   req(input$redd_encounters_rows_selected)
   req(!is.na(selected_redd_encounter_data()$redd_encounter_id))
+  start_dt = format(selected_survey_data()$survey_date, "%m/%d/%Y")
   redd_substrate_title = glue("{selected_survey_event_data()$species} redd substrate data for {input$stream_select} on ",
-                               "{selected_survey_data()$survey_date} from river mile {selected_survey_data()$up_rm} ",
+                               "{start_dt} from river mile {selected_survey_data()$up_rm} ",
                                "to {selected_survey_data()$lo_rm}")
   redd_substrate_data = get_redd_substrate(pool, selected_redd_encounter_data()$redd_encounter_id) %>%
     select(substrate_level, substrate_type, substrate_pct,
@@ -42,6 +43,8 @@ output$redd_substrates = renderDT({
 
   # Generate table
   datatable(redd_substrate_data,
+            colnames = c("Substrate Level", "Substrate Type", "Substrate Percent", "Created Date",
+                         "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,
