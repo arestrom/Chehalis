@@ -3,7 +3,7 @@ output$area_surveyed_select = renderUI({
   req(valid_connection == TRUE)
   area_surveyed_list = get_area_surveyed(pool)$area_surveyed
   area_surveyed_list = c("", area_surveyed_list)
-  selectizeInput("area_surveyed_select", label = "area_surveyed_condition",
+  selectizeInput("area_surveyed_select", label = "Area Surveyed Condition",
                  choices = area_surveyed_list, selected = NULL,
                  width = "175px")
 })
@@ -12,16 +12,16 @@ output$abundance_condition_select = renderUI({
   req(valid_connection == TRUE)
   abundance_condition_list = get_abundance_condition(pool)$abundance_condition
   abundance_condition_list = c("", abundance_condition_list)
-  selectizeInput("abundance_condition_select", label = "abundance_condition",
+  selectizeInput("abundance_condition_select", label = "Abundance Condition",
                  choices = abundance_condition_list, selected = NULL,
-                 width = "125px")
+                 width = "150px")
 })
 
 output$stream_condition_select = renderUI({
   req(valid_connection == TRUE)
   stream_condition_list = get_stream_condition(pool)$stream_condition
   stream_condition_list = c("", stream_condition_list)
-  selectizeInput("stream_condition_select", label = "stream_condition",
+  selectizeInput("stream_condition_select", label = "Stream Condition",
                  choices = stream_condition_list, selected = NULL,
                  width = "200px")
 })
@@ -30,7 +30,7 @@ output$stream_flow_select = renderUI({
   req(valid_connection == TRUE)
   stream_flow_list = get_stream_flow(pool)$stream_flow
   stream_flow_list = c("", stream_flow_list)
-  selectizeInput("stream_flow_select", label = "stream_flow",
+  selectizeInput("stream_flow_select", label = "Stream Flow",
                  choices = stream_flow_list, selected = NULL,
                  width = "125px")
 })
@@ -39,7 +39,7 @@ output$count_condition_select = renderUI({
   req(valid_connection == TRUE)
   count_condition_list = get_count_condition(pool)$count_condition
   count_condition_list = c("", count_condition_list)
-  selectizeInput("count_condition_select", label = "count_condition",
+  selectizeInput("count_condition_select", label = "Count Condition",
                  choices = count_condition_list, selected = NULL,
                  width = "250px")
 })
@@ -48,7 +48,7 @@ output$survey_direction_select = renderUI({
   req(valid_connection == TRUE)
   survey_direction_list = get_survey_direction(pool)$survey_direction
   survey_direction_list = c("", survey_direction_list)
-  selectizeInput("survey_direction_select", label = "survey_direction",
+  selectizeInput("survey_direction_select", label = "Survey Direction",
                  choices = survey_direction_list, selected = NULL,
                  width = "150px")
 })
@@ -57,16 +57,16 @@ output$survey_timing_select = renderUI({
   req(valid_connection == TRUE)
   survey_timing_list = get_survey_timing(pool)$survey_timing
   survey_timing_list = c("", survey_timing_list)
-  selectizeInput("survey_timing_select", label = "survey_timing_condition",
+  selectizeInput("survey_timing_select", label = "Survey Timing Condition",
                  choices = survey_timing_list, selected = NULL,
-                 width = "150px")
+                 width = "175px")
 })
 
 output$visibility_condition_select = renderUI({
   req(valid_connection == TRUE)
   visibility_condition_list = get_visibility_condition(pool)$visibility_condition
   visibility_condition_list = c("", visibility_condition_list)
-  selectizeInput("visibility_condition_select", label = "visibility_condition",
+  selectizeInput("visibility_condition_select", label = "Visibility Condition",
                  choices = visibility_condition_list, selected = NULL,
                  width = "150px")
 })
@@ -75,7 +75,7 @@ output$visibility_type_select = renderUI({
   req(valid_connection == TRUE)
   visibility_type_list = get_visibility_type(pool)$visibility_type
   visibility_type_list = c("", visibility_type_list)
-  selectizeInput("visibility_type_select", label = "visibility_type",
+  selectizeInput("visibility_type_select", label = "Visibility Type",
                  choices = visibility_type_list, selected = NULL,
                  width = "150px")
 })
@@ -84,7 +84,7 @@ output$weather_type_select = renderUI({
   req(valid_connection == TRUE)
   weather_type_list = get_weather_type(pool)$weather_type
   weather_type_list = c("", weather_type_list)
-  selectInput("weather_type_select", label = "weather_type",
+  selectInput("weather_type_select", label = "Weather Type",
                  choices = weather_type_list, selected = NULL,
                  width = "150px")
 })
@@ -104,6 +104,10 @@ output$survey_comments = renderDT({
 
   # Generate table
   datatable(survey_comment_data,
+            colnames = c("Area Surveyed", "Abundance Condition", "Stream Condition", "Stream Flow",
+                         "Count Condition", "Survey Direction", "Timing Condition", "Visibility Condition",
+                         "Visibility Type", "Weather Type", "Survey Comment", "Created Date",
+                         "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'tp',
                            scrollX = T,

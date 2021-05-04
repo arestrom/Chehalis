@@ -3,7 +3,7 @@ output$intent_species_select = renderUI({
   req(valid_connection == TRUE)
   species_list = get_intent_species(pool)$species
   species_list = c("", species_list)
-  selectizeInput("intent_species_select", label = "species",
+  selectizeInput("intent_species_select", label = "Species",
                  choices = species_list, selected = NULL,
                  width = "175px")
 })
@@ -12,7 +12,7 @@ output$intent_count_type_select = renderUI({
   req(valid_connection == TRUE)
   count_type_list = get_count_type(pool)$count_type
   count_type_list = c("", count_type_list)
-  selectizeInput("intent_count_type_select", label = "count_type",
+  selectizeInput("intent_count_type_select", label = "Count Type",
                  choices = count_type_list, selected = NULL,
                  width = "100px")
 })
@@ -29,6 +29,8 @@ output$survey_intents = renderDT({
 
   # Generate table
   datatable(survey_intent_data,
+            colnames = c("Species", "Count Type", "Created Date", "Created By",
+                         "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,

@@ -20,7 +20,7 @@ get_new_fish_location = function(pool, waterbody_id) {
              "left join spawning_ground.fish_encounter as fe on floc.location_id = fe.fish_location_id ",
              "inner join spawning_ground.stream_channel_type_lut as sc on floc.stream_channel_type_id = sc.stream_channel_type_id ",
              "inner join spawning_ground.location_orientation_type_lut as lo on floc.location_orientation_type_id = lo.location_orientation_type_id ",
-             "where floc.created_datetime > now() - interval '1 day' ",
+             "where floc.created_datetime > now() - interval '3 months' ",
              "and fe.fish_encounter_id is null ",
              "and floc.waterbody_id = '{waterbody_id}' ",
              "and lt.location_type_description = 'Fish encounter'")
@@ -59,7 +59,7 @@ get_previous_fish_location = function(pool, waterbody_id, up_rm, lo_rm, survey_d
              "left join spawning_ground.location_coordinates as lc on floc.location_id = lc.location_id ",
              "inner join spawning_ground.stream_channel_type_lut as sc on floc.stream_channel_type_id = sc.stream_channel_type_id ",
              "inner join spawning_ground.location_orientation_type_lut as lo on floc.location_orientation_type_id = lo.location_orientation_type_id ",
-             "where s.survey_datetime > date '{survey_date}' - interval '3 months' ",
+             "where s.survey_datetime > date '{survey_date}' - interval '2 days' ",
              "and s.survey_datetime <= date '{survey_date}' + interval '8 hours' ",
              "and floc.waterbody_id = '{waterbody_id}' ",
              "and uploc.river_mile_measure <= {up_rm} ",

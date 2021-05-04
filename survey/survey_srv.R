@@ -3,7 +3,7 @@
 output$survey_method_select = renderUI({
   req(valid_connection == TRUE)
   survey_method_list = get_survey_method(pool)$survey_method
-  selectizeInput("survey_method_select", label = "survey_method",
+  selectizeInput("survey_method_select", label = "Survey Method",
                  choices = survey_method_list, selected = "Foot",
                  width = "115px")
 })
@@ -11,7 +11,7 @@ output$survey_method_select = renderUI({
 output$upper_rm_select = renderUI({
   req(valid_connection == TRUE)
   rm_list = rm_list()$rm_label
-  selectizeInput("upper_rm_select", label = "upper_rm",
+  selectizeInput("upper_rm_select", label = "Upper River Mile",
                  choices = rm_list, selected = rm_list[[1]],
                  width = "150px")
 })
@@ -19,7 +19,7 @@ output$upper_rm_select = renderUI({
 output$lower_rm_select = renderUI({
   req(valid_connection == TRUE)
   rm_list = rm_list()$rm_label
-  selectizeInput("lower_rm_select", label = "lower_rm",
+  selectizeInput("lower_rm_select", label = "Lower River Mile",
                  choices = rm_list, selected = rm_list[[1]],
                  width = "150px")
 })
@@ -27,7 +27,7 @@ output$lower_rm_select = renderUI({
 output$data_source_select = renderUI({
   req(valid_connection == TRUE)
   data_source_list = get_data_source(pool)$data_source
-  selectizeInput("data_source_select", label = "data_source",
+  selectizeInput("data_source_select", label = "Data Source",
                  choices = data_source_list,
                  selected = "WDFW: Washington Department of Fish and Wildlife",
                  width = "310px")
@@ -36,7 +36,7 @@ output$data_source_select = renderUI({
 output$data_source_unit_select = renderUI({
   req(valid_connection == TRUE)
   data_source_unit_list = get_data_source_unit(pool)$data_source_unit
-  selectizeInput("data_source_unit_select", label = "data_source_unit",
+  selectizeInput("data_source_unit_select", label = "Data Source Unit",
                  choices = data_source_unit_list, selected = "Not applicable",
                  width = "225px")
 })
@@ -44,7 +44,7 @@ output$data_source_unit_select = renderUI({
 output$data_review_select = renderUI({
   req(valid_connection == TRUE)
   data_review_list = get_data_review(pool)$data_review
-  selectizeInput("data_review_select", label = "data_review",
+  selectizeInput("data_review_select", label = "Data Review Status",
                  choices = data_review_list, selected = "Preliminary",
                  width = "250px")
 })
@@ -52,7 +52,7 @@ output$data_review_select = renderUI({
 output$completion_select = renderUI({
   req(valid_connection == TRUE)
   completion_list = get_completion_status(pool)$completion
-  selectizeInput("completion_select", label = "completed?",
+  selectizeInput("completion_select", label = "Completed Survey?",
                  choices = completion_list, selected = "Completed survey",
                  width = "150px")
 })
@@ -60,7 +60,7 @@ output$completion_select = renderUI({
 output$incomplete_type_select = renderUI({
   req(valid_connection == TRUE)
   incomplete_type_list = get_incomplete_type(pool)$incomplete_type
-  selectizeInput("incomplete_type_select", label = "why not completed?",
+  selectizeInput("incomplete_type_select", label = "Why Not Completed?",
                  choices = incomplete_type_list, selected = "Not applicable",
                  width = "225px")
 })
@@ -84,6 +84,10 @@ output$surveys = renderDT({
            modified_by)
   # Generate table
   datatable(survey_data,
+            colnames = c("Survey Date", "Survey Method", "Upper RM", "Lower RM", "Start Time",
+                         "End Time", "Observer", "Submitter", "Data Source", "Source Unit",
+                         "Data Review", "Completed?", "Reason incomplete", "Created Date",
+                         "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             extensions = 'Buttons',
             options = list(dom = 'Blftp',

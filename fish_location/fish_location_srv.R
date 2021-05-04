@@ -7,7 +7,7 @@ output$fish_channel_type_select = renderUI({
   req(valid_connection == TRUE)
   channel_type_list = get_fish_channel_type(pool)$channel_type
   channel_type_list = c("", channel_type_list)
-  selectizeInput("fish_channel_type_select", label = "channel_type",
+  selectizeInput("fish_channel_type_select", label = "Stream Channel Type",
                  choices = channel_type_list, selected = NULL,
                  width = "250px")
 })
@@ -16,9 +16,9 @@ output$fish_orientation_type_select = renderUI({
   req(valid_connection == TRUE)
   orientation_type_list = get_fish_orientation_type(pool)$orientation_type
   orientation_type_list = c("", orientation_type_list)
-  selectizeInput("fish_orientation_type_select", label = "orientation_type",
+  selectizeInput("fish_orientation_type_select", label = "Orientation (relative to flow)",
                  choices = orientation_type_list, selected = NULL,
-                 width = "275px")
+                 width = "300px")
 })
 
 #========================================================
@@ -49,6 +49,9 @@ output$fish_locations = renderDT({
 
   # Generate table
   datatable(fish_location_data,
+            colnames = c("Survey Date", "Species", "Fish Name", "Fish Status", "Channel Type",
+                         "Orientation", "Latitude", "Longitude", "Horiz. Accuracy", "Location Description",
+                         "Created Date", "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,

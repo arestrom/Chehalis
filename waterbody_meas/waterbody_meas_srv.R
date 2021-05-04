@@ -3,7 +3,7 @@ output$clarity_type_select = renderUI({
   req(valid_connection == TRUE)
   clarity_type_list = get_clarity_type(pool)$clarity_type
   clarity_type_list = c("", clarity_type_list)
-  selectizeInput("clarity_type_select", label = "clarity_type",
+  selectizeInput("clarity_type_select", label = "Clarity Type",
                  choices = clarity_type_list, selected = NULL,
                  width = "250px")
 })
@@ -23,6 +23,9 @@ output$waterbody_measure = renderDT({
 
   # Generate table
   datatable(waterbody_meas_data,
+            colnames = c("Clarity Type", "Clarity (meter)", "Flow (CFS)", "Start Temperature",
+                         "Temp Time", "End Temperature", "Temp Time", "Water pH", "Created Date",
+                         "Created By", "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'tp',
                            scrollX = T,

@@ -7,7 +7,7 @@ output: html_document
 
 ***  
 
-# Chehalis (Chehalis Basin salmonid survey data)
+# Chehalis (Chehalis Basin data)
 
 ## Overview
 

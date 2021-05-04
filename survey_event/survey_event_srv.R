@@ -6,7 +6,7 @@ output$event_species_select = renderUI({
   req(valid_connection == TRUE)
   species_list = get_event_species(pool)$species
   species_list = c("", species_list)
-  selectizeInput("event_species_select", label = "species",
+  selectizeInput("event_species_select", label = "Species",
                  choices = species_list, selected = NULL,
                  width = "175px")
 })
@@ -15,25 +15,25 @@ output$survey_design_select = renderUI({
   req(valid_connection == TRUE)
   survey_design_list = get_survey_design(pool)$survey_design
   survey_design_list = c("", survey_design_list)
-  selectizeInput("survey_design_select", label = "survey_design",
+  selectizeInput("survey_design_select", label = "Survey Design",
                  choices = survey_design_list, selected = NULL,
-                 width = "100px")
+                 width = "125px")
 })
 
 output$cwt_detect_method_select = renderUI({
   req(valid_connection == TRUE)
   cwt_detect_method_list = get_cwt_detect_method(pool)$cwt_detect_method
   cwt_detect_method_list = c("", cwt_detect_method_list)
-  selectizeInput("cwt_detect_method_select", label = "cwt_detect_method",
+  selectizeInput("cwt_detect_method_select", label = "CWT Detection Method",
                  choices = cwt_detect_method_list, selected = "Not applicable",
-                 width = "125px")
+                 width = "150px")
 })
 
 output$run_select = renderUI({
   req(valid_connection == TRUE)
   run_list = get_run(pool)$run
   run_list = c("", run_list)
-  selectizeInput("run_select", label = "run",
+  selectizeInput("run_select", label = "Run Type",
                  choices = run_list, selected = "Unknown",
                  width = "125px")
 })
@@ -43,7 +43,7 @@ output$run_year_select = renderUI({
   end_year = as.integer(substr(input$when_date_range[2], 1, 4))
   run_year_list = seq(start_year - 4L, end_year + 1L)
   selectizeInput("run_year_select",
-                 label = "run_year",
+                 label = "Run Year",
                  choices = run_year_list,
                  selected = start_year,
                  width = "125px")
@@ -66,6 +66,9 @@ output$survey_events = renderDT({
 
   # Generate table
   datatable(survey_event_data,
+            colnames = c("Species", "Survey Design", "CWT Method", "Run Type", "Run Year",
+                         "Percent Seen", "Species Comment", "Created Date", "Created By",
+                         "Modified Date", "Modified By"),
             selection = list(mode = 'single'),
             options = list(dom = 'ltp',
                            pageLength = 5,
