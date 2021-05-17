@@ -139,6 +139,7 @@ library(keyring)
 
 # Options
 devmode()
+# Same as: shiny::devmode(TRUE)
 #options("connectionObserver" = NULL)
 #options(shiny.reactlog = TRUE)
 #reactlogShow()
