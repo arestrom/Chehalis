@@ -99,15 +99,14 @@
 # 31. Need to speed up redd_locations query. Can probably use waterbody and year to filter.
 # 32. Add search boxes to all DTs
 # 33. Enable columns to be hidden
-# 34. Set labels for column headers
-# 35. Add selectable input for the number of months of previous redds or carcasses to display
+# 34. Add selectable input for the number of months of previous redds or carcasses to display
 #     in the redd_location and fish_location tables.
-# 36. Prevent ability to edit fish_count > 1 if anything is entered for individual_fish!!!!!
-# 37. May want to provide option to search for new, unassigned fish or redd locations that
+# 35. Prevent ability to edit fish_count > 1 if anything is entered for individual_fish!!!!!
+# 36. May want to provide option to search for new, unassigned fish or redd locations that
 #     were created within the previous x days using a 'days since' select. That would also
 #     allow orphan redd locations on the waterbody to be deleted.
 #
-# AS 2021-04-28
+# AS 2021-05-20
 #==============================================================
 
 # Load libraries
