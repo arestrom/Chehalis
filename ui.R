@@ -218,12 +218,13 @@ ui = dashboardPage(
                 br(),
                 br(),
                 box(
-                  title = "Export data using interactive query generator (ToDo)",
+                  title = "Data queries",
                   width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
                   solidHeader = FALSE,
-                  collapsed = FALSE
+                  collapsed = FALSE,
+                  data_query_ui
                 )
               )
       ),

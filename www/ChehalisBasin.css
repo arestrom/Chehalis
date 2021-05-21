@@ -78,6 +78,18 @@
   font-size: 1.18em;
 }
 
+.btn {                      /* keep: Sets selections inside pickerInput to 11px. May want to try em */
+  font-size: 11px;
+}
+
+.btn-default {              /* keep: Sets background color inside pickerInput to white */
+  background-color: #ffffff;
+}
+
+.dropdown-menu {            /* keep: Sets selections in dropdown list to 11px. May want to try em */
+  font-size: 11px;
+}
+
 /* Required fields survey At home: #9ed6a140, then at work: #17ea2d42, =============================================================*/
 
 #survey_date_input .form-control {
