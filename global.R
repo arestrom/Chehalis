@@ -1,33 +1,14 @@
 #==============================================================
 # Application to edit data for spawning_ground database
 #
-# Notes for Lea...form related
-#  1. Should change logins for consistency, so created_by can be pulled from start portion.
-#     Could be underscore or . If data entry is listed as "real_time" can I just use observer?
-#     It looks like observer is always just one person....better than using VAR...
-#  2. Ask if first and last names should be used for observers. I prefer just
-#     last name.
-#  3. Why is run year defined at header level? Need to fix run_year assignments.
-#  4. Can data_source always be assigned to WDFW? Is a data_source_unit needed?
-#  5. If required data are missing...may want to just assign a default value,
-#     upload, then output a file with problematic data?
-#  6. Can I just use observers for data_submitter...I am for now.
-#  7. What is Clarity Pool in other_observations?
-#     Answer: Standardized location where pool clarity is measured...from Region 5
-#  8. What is new_survey_bottom and new_survey_top?
-#     Answer: Used by Region 5 to designate new upper and lower end-points.
-#             Ask Reg 5 if this is needed in database...where to store?
-#
-# Notes on install R 4.0.2
+# Notes on install R 4.1.0
 #  1. Will need the following non-cran packages:
 #       remotes::install_github("arestrom/iformr")
 #
 # Notes:
 #  1. Do not use rownames = FALSE in DT. Data will not reload
 #     when using replaceData() function.
-#  2. See: https://www.endpoint.com/blog/2015/08/12/bucardo-postgres-replication-pgbench
-#     for possible replication scenarios.
-#  3. To prune merged git branches:
+#  2. To prune merged git branches:
 #     a, Check which branches have been merged:       git branch --merged
 #     b, Once branch has been deleted from remote:    git fetch -p            # To prune those no longer on remote
 #     c, To delete branch from local:                 git branch -d <branch>
@@ -43,8 +24,8 @@
 #  4. Add modal screen to validate clarity type is chosen along
 #     with clarity_meter
 #  5. Need to dump and reload all lakes data...using new layer
-#     Dale is creating for me. Look for intersecting polygons
-#     before uploading and dump any duplicates. Dale's layer
+#     DG has created. Look for intersecting polygons
+#     before uploading and dump any duplicates. DGs layer
 #     is omitting the marshland.
 #  6. Need to scan all existing stream geometry for overlapping
 #     segments...then dump those and reset sequences. Need to
@@ -55,64 +36,43 @@
 #  8. Check that select inputs are ordered optimally. Use
 #     example code in redd_substrate_global as example to
 #     order by levels.
-#  9. Use descriptions in Data Source drop-down. Codes too cryptic.
-# 10. Need to add code to edit modals to make sure all
-#     required fields have values entered. See fish_location.
-#     Or use validate...need?
-# 11. In survey code...add incomplete_survey_type and
-#     data_source_unit lut values as selects
-# 12. Add code to limit the number of possible length
+#  9. Add code to limit the number of possible length
 #     measurements to the number of items in length_type
 #     lut list.
-# 13. Verify all screens...especially edit, do not remove
+# 10. Verify all screens...especially edit, do not allow removing
 #     required values by backspacing and updating. !!!!!
-# 14. Change select for year in wria_stream_ui.R to
-#     date range. See MarSS example.
-# 15. Get rid of extra channel and orientation lut function
-#     for fish in fish_location_global.R. Can reuse
-#     function from redd_location.
-# 16. See example code "current_redd_locations" in redd_encounter_srv.R
+# 11. See example code "current_redd_locations" in redd_encounter_srv.R
 #     as example of how to possibly simplify a bunch of repeat
 #     invocations of get_xxx global functions.
-# 17. Try to use two year location queries for all carcass locations,
-#     WRIA and stream. Then filter in memory using reactives? To
-#     pre-run location queries for fish and redds, print stats
-#     on n-surveys, n-redds, n-carcasses on front-page
-# 18. Consider adding theme selector to set background
+# 12. Consider adding theme selector to set background
 #     colors, themes, etc. Look at bootstraplib package.
-# 19. Consider using shinyjs to add class "required_field" directly
+# 13. Consider using shinyjs to add class "required_field" directly
 #     to each required element. Then just use one css entry for all.
-# 20. Add raster tile coverage for full offline capability... !!!
-# 21. Eventually test with lidar and raytracer mapping.
-# 22. Update all names in inputs and DT columns to more readable format.
-# 23. Add code to unselect row in parent table whenever a row is deleted in child table.
-#     Use example from survey_comment_srv code.
-# 24. Consider using fish_location_insert code from here in salmon_data (parameterized...not postgis sql)
-# 25. Check all st_read arguments to make sure they include crs = 2927
-# 26. Change stream drop-down code to use display_name not full waterbody_name. Add cat code.
-# 27. Change required fields in reach_point to omit river_mile. We should start
+# 14. Add raster tile coverage for full offline capability... !!!
+# 15. Eventually test with lidar and raytracer mapping.
+# 16. Change stream drop-down code to use display_name not full waterbody_name. Add cat code.
+# 17. Change required fields in reach_point to omit river_mile. We should start
 #     weaning off RMs and go with codes, descriptors and coords instead.
-# 28. Wrap "add_end_points" reactive code in mobile_import_srv.R in try-catch...with toastr?.
-# 29. Need to add an other_observations and passage_feature boxes at the survey level...along
+# 18. Need to add an other_observations and passage_feature boxes at the survey level...along
 #     with interface to add or edit streams.
-# 30. Need interface for media. Copy code from mykos.
-# 31. Need to speed up redd_locations query. Can probably use waterbody and year to filter.
-# 32. Add search boxes to all DTs
-# 33. Enable columns to be hidden
-# 34. Add selectable input for the number of months of previous redds or carcasses to display
+# 19. Need interface for media. Copy code from mykos.
+# 20. Add search boxes to all DTs
+# 21. Enable columns to be hidden
+# 22. Add selectable input for the number of months of previous redds or carcasses to display
 #     in the redd_location and fish_location tables.
-# 35. Prevent ability to edit fish_count > 1 if anything is entered for individual_fish!!!!!
-# 36. May want to provide option to search for new, unassigned fish or redd locations that
+# 23. Prevent ability to edit fish_count > 1 if anything is entered for individual_fish!!!!!
+# 24. May want to provide option to search for new, unassigned fish or redd locations that
 #     were created within the previous x days using a 'days since' select. That would also
 #     allow orphan redd locations on the waterbody to be deleted.
 #
-# AS 2021-05-20
+# AS 2021-05-26
 #==============================================================
 
 # Load libraries
 library(shiny)
 library(shinydashboard)
 library(shinydashboardPlus)
+library(shinyWidgets)
 library(shinyTime)
 library(shinyjs)
 library(tippy)
@@ -178,6 +138,8 @@ source("reach_point/reach_point_ui.R")
 source("reach_point/reach_point_global.R")
 # # source("mobile_import/mobile_import_ui.R")
 # # source("mobile_import/mobile_import_global.R")
+source("data_query/data_query_ui.R")
+source("data_query/data_query_global.R")
 source("connect/connect_ui.R")
 source("connect/connect_global.R")
 

@@ -20,6 +20,7 @@ server = function(input, output, session) {
   source("redd_substrate/redd_substrate_srv.R", local = TRUE)
   source("reach_point/reach_point_srv.R", local = TRUE)
   # # source("mobile_import/mobile_import_srv.R", local = TRUE)
+  source("data_query/data_query_srv.R", local = TRUE)
   source("connect/connect_srv.R", local = TRUE)
 
   # Go to connect tab if pool is invalid
