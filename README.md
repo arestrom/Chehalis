@@ -3,18 +3,24 @@
 
 ## Overview
 
-This package provides a front-end interface to WDFWs SG (spawning
-ground) database. The package is in an early developmental state. It is
-intended to serve as a temporary bridge to enable WDFW biologists
+This application provides a front-end interface to WDFWs SG (Spawning
+Ground) database. The application is in an early developmental state. It
+is intended to serve as a temporary bridge to enable WDFW biologists
 working in the Chehalis Basin to enter and edit data until a permanent
 solution can be built using our standard NodeJS Angular framework. This
 application will only work for those who have been granted appropriate
 permissions to the database…a tightly restricted group. No credentials
-are stored in the R code. If you do not have permissions to the
-database, but want to explore the functionality, you will need to create
-and host your own database separately. A create script for the database
-can be requested. You can also find the most recent version of the SG
-data dictionary at: <https://arestrom.github.io/sgsdd/>
+are stored in the R code.
+
+If you are not an employee of WDFW, but want to explore the
+functionality of the interface, you will need to create and host your
+own database separately. A create script for the database can be found
+in the `database` folder. The same folder includes generic SQL code to
+define views and database roles, and also `R` code that can be used to
+upload stream geometry to the database. A local instance of the database
+is quick and easy to set up. For an overview of the SG database, you can
+find the most recent version of the SG data dictionary at:
+<https://arestrom.github.io/sgsdd/>
 
 ## Installation
 
@@ -41,13 +47,13 @@ application. If you do you will need to close and reopen.
 ## Permissions
 
 In order to use this application you **must** first be granted
-permissions to the database. Please contact the database administrator
-to be whitelisted and granted the appropriate permissions. When you run
-the application the user name is set by default to be the same as the
-user name of the person that logged into the computer. This is by
-design. It allows recording the user name to the database `created_by`
-or `modified_by` fields anytime new entries, updates, or edits are
-committed.
+permissions to the database. For WDFW employees, please contact the
+database administrator to be whitelisted and granted the appropriate
+permissions. When you run the application the user name is set by
+default to be the same as the user name of the person that logged into
+the computer. This is by design. It allows recording the user name to
+the database `created_by` or `modified_by` fields anytime new entries,
+updates, or edits are committed.
 
 The first time you use the application you will be automatically routed
 to an entry form to enable storing your database credentials and
@@ -56,7 +62,7 @@ credentials screen if changes are made to the server, or your password
 lapses. If that happens please contact the database administrator to
 verify that your password is current, and that you have entered the
 correct values for the server host and port. Database connection
-credentials are secured as encryted values in the Windows Credential
+credentials are secured as encrypted values in the Windows Credential
 Manager.
 
 ### In case of a crash
