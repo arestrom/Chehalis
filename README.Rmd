@@ -23,7 +23,7 @@ If you are not an employee of WDFW, but want to explore the functionality of the
 
 ## Installation
 
-The application is distributed as a standalone Windows installer. It does not require admin rights to install. The installer will create a new directory called `Apps\Chehalis` under the users `Documents` folder. It will also place an icon on the users desktop for launching. The application comes bundled with a portable version of R and includes all package dependencies. No separate install of R is needed. This also means that the application should continue to work well into the future, even as the underlying technology and web of dependencies change. For details on how to package up a standalone installer for shiny applicatons see: https://github.com/arestrom/refreeze
+Although the application code above can be run directly from an `RStudio` session, the final application is designed to be compiled and distributed as a standalone Windows installer. It does not require admin rights to install. The installer will create a new directory called `Apps\Chehalis` under the users `Documents` folder. It will also place an icon on the users desktop for launching. The application comes bundled with a portable version of R and includes all package dependencies. No separate install of `R` is needed. This also means that the application should continue to work well into the future, even as the underlying technology and web of dependencies change. For details on how to package up a standalone installer for `Shiny` framework applicatons see: https://github.com/arestrom/refreeze
 
 ## Start and stop the application
 
@@ -37,6 +37,6 @@ The first time you use the application you will be automatically routed to an en
 
 ### In case of a crash 
 
-If after installing the application, it crashes, or fails to load, navigate to the `out.txt` folder in the App directory: `C:\Documents\Apps\Chehalis\out.txt`. The `out.txt` file will log the first fatal error encountered. Please include this information when reporting the error.
+If after installing the standalone application, it crashes, or fails to load, navigate to the `out.txt` folder in the App directory: `C:\Documents\Apps\Chehalis\out.txt`. The `out.txt` file will log the first fatal error encountered. Please include this information when reporting the error.
 
 After a crash you may also need to kill any active `R` processes using Windows Task Manager. Click `Ctrl-Alt-Delete` to open Task Manager. Then in the `Processes` tab, look for any processes named `R for Windows front-end` or `R for Windows terminal front-end`. You can right-click on these and select `End task` to terminate the process. 
