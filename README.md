@@ -10,12 +10,12 @@ working in the Chehalis Basin to enter and edit data until a permanent
 solution can be built using our standard NodeJS Angular framework. This
 application will only work for those who have been granted appropriate
 permissions to the database…a tightly restricted group. No credentials
-are stored in the R code.
+are stored in the `R` code.
 
 If you are not an employee of WDFW, but want to explore the
 functionality of the interface, you will need to create and host your
 own database separately. A create script for the database can be found
-in the `database` folder. The same folder includes generic SQL code to
+in the `database` folder. The same folder includes generic `SQL` code to
 define views and database roles, and also `R` code that can be used to
 upload stream geometry to the database. A local instance of the database
 is quick and easy to set up. For an overview of the SG database, you can
