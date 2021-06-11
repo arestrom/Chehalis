@@ -65,7 +65,7 @@
 #     were created within the previous x days using a 'days since' select. That would also
 #     allow orphan redd locations on the waterbody to be deleted.
 #
-# AS 2021-05-26
+# AS 2021-06-11
 #==============================================================
 
 # Load libraries
