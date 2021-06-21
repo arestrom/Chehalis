@@ -91,7 +91,7 @@ output$surveys = renderDT({
             selection = list(mode = 'single'),
             extensions = 'Buttons',
             options = list(dom = 'Blftp',
-                           pageLength = 5,
+                           pageLength = 20,
                            lengthMenu = c(1, 5, 10, 20, 40, 60, 100),
                            scrollX = T,
                            buttons = c('excel', 'print'),
