@@ -218,7 +218,7 @@ ui = dashboardPage(
                 br(),
                 br(),
                 box(
-                  title = "Data queries",
+                  title = "Scale query (filtered for scale data, some DNA or otolith numbers may be missing)",
                   width = 12,
                   closable = FALSE,
                   collapsible = TRUE,
