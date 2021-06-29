@@ -157,42 +157,42 @@ get_credentials = function(credential_label = NULL, keyring = NULL) {
   })
 }
 
-# Check credentials on local instance...return boolean
-valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
-                                     host = "localhost",
-                                     port = "5432",
-                                     user = Sys.getenv("USERNAME"),
-                                     password = get_credentials("pg_pwd_local"),
-                                     dbname = get_credentials("pg_fish_local_db"))
-
-# Get pooled connection to local instance if credentials valid
-if ( valid_connection == TRUE ) {
-  pool = pool::dbPool(RPostgres::Postgres(),
-                      dbname = get_credentials("pg_fish_local_db"),
-                      host = "localhost",
-                      port = "5432",
-                      user = Sys.getenv("USERNAME"),
-                      password = get_credentials("pg_pwd_local"))
-}
-
-
-# # Check credentials...return boolean
+# # Check credentials on local instance...return boolean
 # valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
-#                                      host = get_credentials("pg_host_prod"),
-#                                      port = get_credentials("pg_port_prod"),
+#                                      host = "localhost",
+#                                      port = "5432",
 #                                      user = Sys.getenv("USERNAME"),
-#                                      password = get_credentials("pg_pwd_prod"),
-#                                      dbname = get_credentials("pg_fish_prod_db"))
+#                                      password = get_credentials("pg_pwd_local"),
+#                                      dbname = get_credentials("pg_fish_local_db"))
 #
-# # Get pooled connection to AWS prod instance if credentials valid
+# # Get pooled connection to local instance if credentials valid
 # if ( valid_connection == TRUE ) {
 #   pool = pool::dbPool(RPostgres::Postgres(),
-#                       dbname = get_credentials("pg_fish_prod_db"),
-#                       host = get_credentials("pg_host_prod"),
-#                       port = get_credentials("pg_port_prod"),
+#                       dbname = get_credentials("pg_fish_local_db"),
+#                       host = "localhost",
+#                       port = "5432",
 #                       user = Sys.getenv("USERNAME"),
-#                       password = get_credentials("pg_pwd_prod"))
+#                       password = get_credentials("pg_pwd_local"))
 # }
+
+
+# Check credentials...return boolean
+valid_connection = DBI::dbCanConnect(RPostgres::Postgres(),
+                                     host = get_credentials("pg_host_prod"),
+                                     port = get_credentials("pg_port_prod"),
+                                     user = Sys.getenv("USERNAME"),
+                                     password = get_credentials("pg_pwd_prod"),
+                                     dbname = get_credentials("pg_fish_prod_db"))
+
+# Get pooled connection to AWS prod instance if credentials valid
+if ( valid_connection == TRUE ) {
+  pool = pool::dbPool(RPostgres::Postgres(),
+                      dbname = get_credentials("pg_fish_prod_db"),
+                      host = get_credentials("pg_host_prod"),
+                      port = get_credentials("pg_port_prod"),
+                      user = Sys.getenv("USERNAME"),
+                      password = get_credentials("pg_pwd_prod"))
+}
 
 # Convert empty strings to NAs
 set_na = function(x, na_value = "") {
